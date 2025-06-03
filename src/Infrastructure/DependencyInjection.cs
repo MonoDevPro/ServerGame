@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Constants;
-using ServerGame.Infrastructure.Authentication;
 using ServerGame.Infrastructure.Data;
 using ServerGame.Infrastructure.Data.Interceptors;
 using ServerGame.Infrastructure.Identity;
@@ -34,8 +33,6 @@ public static class DependencyInjection
                 options.UseNpgsql(connectionString, npgsqlOptions =>
                     npgsqlOptions.EnableRetryOnFailure(3)).AddAsyncSeeding(sp);
             }
-            
-            options.UseOpenIddict();
         });
 
         builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
@@ -44,16 +41,8 @@ public static class DependencyInjection
 
         builder.Services.AddScoped<ApplicationDbContextInitialiser>();
 
-        builder.AddOpenIddictBuilder();
-
-        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddBearerToken(IdentityConstants.BearerScheme)
-            .AddCookie(options =>
-        {
-            options.AccessDeniedPath = "/connect/signin";
-            options.LoginPath = "/connect/signin";
-            options.LogoutPath = "/connect/signout";
-        });
+        builder.Services.AddAuthentication()
+            .AddBearerToken(IdentityConstants.BearerScheme);
 
         builder.Services.AddAuthorizationBuilder();
 

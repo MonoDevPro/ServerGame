@@ -29,6 +29,10 @@ else
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
+// Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseSwaggerUi(settings =>
 {
     settings.Path = "/api";

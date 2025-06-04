@@ -49,6 +49,7 @@ public static class DatabaseServicesExtension
                         .EnableRetryOnFailure(3)).AddAsyncSeeding<TContext>(sp);
             }
             // Apply additional configuration if provided
+            optionsBuilder?.Invoke(options);
         });
         
         hostBuilder.EnrichNpgsqlDbContext<TContext>();

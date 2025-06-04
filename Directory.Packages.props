@@ -2,7 +2,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AspireVersion>9.1.0</AspireVersion>
+    <AspireVersion>9.3.0</AspireVersion>
     <AspnetVersion>9.0.4</AspnetVersion>
     <EfcoreVersion>9.0.4</EfcoreVersion>
     <MicrosoftExtensionsVersion>9.0.4</MicrosoftExtensionsVersion>

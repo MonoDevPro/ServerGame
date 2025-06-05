@@ -1,10 +1,8 @@
 ﻿using ServerGame.Application.Common.Models;
-using ServerGame.Application.TodoItems.Commands.CreateTodoItem;
-using ServerGame.Application.TodoItems.Commands.DeleteTodoItem;
-using ServerGame.Application.TodoItems.Commands.UpdateTodoItem;
 using ServerGame.Application.TodoItems.Commands.UpdateTodoItemDetail;
 using ServerGame.Application.TodoItems.Queries.GetTodoItemsWithPagination;
 using Microsoft.AspNetCore.Http.HttpResults;
+using ServerGame.Application.TodoItems.Commands.DeleteAccount;
 
 namespace ServerGame.Web.Endpoints;
 

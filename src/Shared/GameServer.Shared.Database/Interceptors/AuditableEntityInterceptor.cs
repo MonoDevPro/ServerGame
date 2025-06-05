@@ -1,4 +1,4 @@
-using GameServer.Shared.Database.Common;
+using GameServer.Shared.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;

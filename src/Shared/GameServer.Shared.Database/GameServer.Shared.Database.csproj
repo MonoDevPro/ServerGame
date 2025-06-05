@@ -13,6 +13,7 @@
 
     <ItemGroup>
       <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
       <PackageReference Include="MediatR" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" />
@@ -23,7 +24,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Context\" />
       <Folder Include="Repository\" />
     </ItemGroup>
 

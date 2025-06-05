@@ -1,6 +1,4 @@
-﻿using GameServer.Shared.Domain.Entities;
-
-namespace GameServer.Shared.Database.Common;
+﻿namespace GameServer.Shared.Domain.Entities;
 
 public abstract class BaseAuditableEntity : BaseEntity
 {

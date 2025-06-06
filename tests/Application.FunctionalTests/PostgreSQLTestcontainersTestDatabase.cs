@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Respawn;
+using ServerGame.Infrastructure.Data.Context;
 using Testcontainers.PostgreSql;
 
 namespace ServerGame.Application.FunctionalTests;

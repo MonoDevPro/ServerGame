@@ -5,6 +5,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using ServerGame.Infrastructure.Data.Context;
 
 namespace ServerGame.Application.FunctionalTests;
 

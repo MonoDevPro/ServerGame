@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Respawn;
+using ServerGame.Infrastructure.Data.Context;
 
 namespace ServerGame.Application.FunctionalTests;
 

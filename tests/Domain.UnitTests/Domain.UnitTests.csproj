@@ -24,4 +24,8 @@
         <ProjectReference Include="..\..\src\Identity\Domain\Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ValueObjects\" />
+    </ItemGroup>
+
 </Project>

@@ -2,10 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using NSwag;
 using NSwag.Generation.Processors.Security;
+using ServerGame.Api.Infrastructure;
+using ServerGame.Api.Services;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Web.Services;
 
-namespace ServerGame.Web;
+namespace ServerGame.Api;
 
 public static class DependencyInjection
 {

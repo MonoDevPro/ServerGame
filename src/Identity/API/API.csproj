@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <RootNamespace>ServerGame.Web</RootNamespace>
-    <AssemblyName>ServerGame.Web</AssemblyName>
+    <RootNamespace>ServerGame.Api</RootNamespace>
+    <AssemblyName>ServerGame.Api</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

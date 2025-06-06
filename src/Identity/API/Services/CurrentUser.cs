@@ -1,8 +1,7 @@
 ﻿using System.Security.Claims;
-
 using ServerGame.Application.Common.Interfaces;
 
-namespace ServerGame.Web.Services;
+namespace ServerGame.Api.Services;
 
 public class CurrentUser : IUser
 {

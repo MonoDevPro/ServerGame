@@ -1,8 +1,8 @@
-﻿using ServerGame.Application.Common.Exceptions;
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using ServerGame.Application.Common.Exceptions;
 
-namespace ServerGame.Web.Infrastructure;
+namespace ServerGame.Api.Infrastructure;
 
 public class CustomExceptionHandler : IExceptionHandler
 {

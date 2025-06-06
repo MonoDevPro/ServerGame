@@ -1,6 +1,7 @@
-﻿using ServerGame.Infrastructure.Identity;
+﻿using ServerGame.Api.Infrastructure;
+using ServerGame.Infrastructure.Identity;
 
-namespace ServerGame.Web.Endpoints;
+namespace ServerGame.Api.Endpoints;
 
 public class Users : EndpointGroupBase
 {

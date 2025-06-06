@@ -1,4 +1,4 @@
-﻿namespace ServerGame.Web.Infrastructure;
+﻿namespace ServerGame.Api.Infrastructure;
 
 public abstract class EndpointGroupBase
 {

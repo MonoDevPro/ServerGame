@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace ServerGame.Web.Infrastructure;
+namespace ServerGame.Api.Infrastructure;
 
 public static class WebApplicationExtensions
 {

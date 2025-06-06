@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace ServerGame.Web.Infrastructure;
+namespace ServerGame.Api.Infrastructure;
 
 public static class IEndpointRouteBuilderExtensions
 {

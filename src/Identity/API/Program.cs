@@ -1,9 +1,9 @@
-using GameServer.Shared.Database;
+using ServerGame.Api;
+using ServerGame.Api.Infrastructure;
 using ServerGame.Application;
 using ServerGame.Infrastructure;
 using ServerGame.Infrastructure.Data;
 using ServerGame.ServiceDefaults;
-using ServerGame.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,7 +19,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    await app.InitialiseDatabaseAsync<ApplicationDbContext>();
+    await app.InitialiseDatabaseAsync();
 }
 else
 {
@@ -50,7 +50,7 @@ app.MapEndpoints();
 
 app.Run();
 
-namespace ServerGame.Web
+namespace ServerGame.Api
 {
     public partial class Program { }
 }

@@ -13,7 +13,7 @@ var postgres = builder
 var database = postgres.AddDatabase(databaseName);
 
 builder
-    .AddProject<API>("ApiService")
+    .AddProject<Projects.API>("ApiService")
     .WithReference(database)
     .WaitFor(database);
 

@@ -1,0 +1,35 @@
+using System.Net;
+
+namespace ServerGame.Domain.ValueObjects;
+
+public sealed record LoginInfo
+{
+    public string LastLoginIp { get; }
+    public DateTime LastLoginDate { get; }
+
+    private LoginInfo(string ip, DateTime date)
+        => (LastLoginIp, LastLoginDate) = (ip, date);
+
+    public static LoginInfo? Create(string ipAddress, DateTime lastLoginDate)
+        => TryCreate(ipAddress, lastLoginDate, out var vo)
+            ? vo
+            : throw new ArgumentException(
+                "Informações de login inválidas.", nameof(ipAddress));
+
+    public static bool TryCreate(
+        string ipAddress,
+        DateTime lastLoginDate,
+        out LoginInfo? result)
+    {
+        result = null;
+        if (string.IsNullOrWhiteSpace(ipAddress)) return false;
+        if (!IPAddress.TryParse(ipAddress.Trim(), out _)) return false;
+        // Sempre normalize para UTC
+        var dateUtc = lastLoginDate.Kind == DateTimeKind.Utc 
+            ? lastLoginDate 
+            : lastLoginDate.ToUniversalTime();
+
+        result = new LoginInfo(ipAddress.Trim(), dateUtc);
+        return true;
+    }
+}

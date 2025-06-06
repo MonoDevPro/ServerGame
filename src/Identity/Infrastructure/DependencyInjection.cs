@@ -1,10 +1,12 @@
-﻿using GameServer.Shared.Database;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServerGame.Application.Common.Interfaces;
+using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Domain.Constants;
+using ServerGame.Domain.Entities;
 using ServerGame.Infrastructure.Data;
+using ServerGame.Infrastructure.Data.Context;
 using ServerGame.Infrastructure.Identity;
 
 namespace ServerGame.Infrastructure;
@@ -13,7 +15,16 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddScoped<IDbContextInitializer<ApplicationDbContext>, DbContextInitializer>();
+        builder.Services.AddScoped<IDatabaseSeeding, DbContextInitializer>();
+
+        builder.ConfigureDatabaseServicesWithAction<ApplicationDbContext>(
+            connectionName: "authdb",
+            entityConfigurator: a => a.AddEntity<Account>(),
+            optionsBuilder: null,
+            postgreDbContextSettings: opt =>
+            {
+                opt.EnableRetryOnFailure(3);
+            });
         
         builder.ConfigureDatabaseServices<ApplicationUser, ApplicationDbContext>(
             connectionName: "authdb",

@@ -11,9 +11,13 @@ public abstract class AccountEvent : DomainEvent
     /// ID do usuário associado ao evento
     /// </summary>
     public long AccountId { get; }
+    public Username Username { get; }
+    public Email Email { get; } 
     
     protected AccountEvent(Account account) : base()
     {
         AccountId = account.Id;
+        Username = account.Username;
+        Email = account.Email;
     }
 }

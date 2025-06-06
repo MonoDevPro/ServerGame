@@ -17,4 +17,10 @@
     <Folder Include="Exceptions\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Ardalis.GuardClauses">
+      <HintPath>..\..\..\..\..\..\.nuget\packages\ardalis.guardclauses\4.6.0\lib\net8.0\Ardalis.GuardClauses.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

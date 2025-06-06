@@ -1,9 +1,12 @@
-﻿namespace ServerGame.Application.Common.Models;
+﻿using ServerGame.Application.Common.Interfaces;
 
-public class PaginatedList<T>
+namespace ServerGame.Application.Common.Models;
+
+public class PaginatedList<T> : IPagedList<T>
 {
     public IReadOnlyCollection<T> Items { get; }
     public int PageNumber { get; }
+    public int PageSize { get; }
     public int TotalPages { get; }
     public int TotalCount { get; }
 
@@ -11,6 +14,7 @@ public class PaginatedList<T>
     {
         PageNumber = pageNumber;
         TotalPages = (int)Math.Ceiling(count / (double)pageSize);
+        PageSize = pageSize;
         TotalCount = count;
         Items = items;
     }

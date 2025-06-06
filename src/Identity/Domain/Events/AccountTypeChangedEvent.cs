@@ -28,12 +28,12 @@ public class AccountTypeChangedEvent : AccountEvent
     public string? Reason { get; }
     
     public AccountTypeChangedEvent(
-        long accountId,
+        Account account,
         AccountType previousAccountType,
         AccountType newAccountType,
         DateTime? subscriptionExpiresAt = null,
         string? reason = null
-        ) : base(accountId)
+        ) : base(account)
     {
         PreviousAccountType = previousAccountType;
         NewAccountType = newAccountType;

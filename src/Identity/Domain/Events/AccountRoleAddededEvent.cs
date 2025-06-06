@@ -4,10 +4,10 @@ namespace ServerGame.Domain.Events;
 
 public class AccountRoleAddedEvent : AccountEvent
 {
-    public string Role { get; }
+    public Role Role { get; }
 
-    public AccountRoleAddedEvent(long accountId, RoleVO role) : base(accountId)
+    public AccountRoleAddedEvent(Account account, Role role) : base(account)
     {
-        Role = role.Value;
+        Role = role;
     }
 }

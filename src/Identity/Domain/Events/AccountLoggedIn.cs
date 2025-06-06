@@ -4,18 +4,12 @@ namespace ServerGame.Domain.Events;
 
 public class AccountLoggedIn : AccountEvent
 {
-    public string Username { get; }
-    public string IpAddress { get; }
-    public DateTime LoginTime { get; }
+    public LoginInfo LoginInfo { get; }
 
     public AccountLoggedIn(
-        long accountId,
-        UsernameVO username,
-        LoginInfoVO login
-        ) : base(accountId)
+        Account account,
+        LoginInfo loginInfo) : base(account)
     {
-        Username = username.Value;
-        IpAddress = login.LastLoginIp;
-        LoginTime = login.LastLoginDate;
+        LoginInfo = loginInfo;
     }
 }

@@ -7,17 +7,9 @@ namespace ServerGame.Domain.Events;
 /// </summary>
 public class AccountBanUpdatedEvent : AccountEvent
 {
-    public BanStatus BanType { get; }
-    public DateTime? BanExpiresAt { get; }
-    public string? BanReason { get; }
-    public long? BannedByUserId { get; }
-    
-    // Construtor usando o VO
-    public AccountBanUpdatedEvent(long accountId, BanInfoVO banInfo) : base(accountId)
+    BanInfo BanInfo { get;}  
+    public AccountBanUpdatedEvent(Account account, BanInfo banInfo) : base(account)
     {
-        BanType = banInfo.Status;
-        BanExpiresAt = banInfo.ExpiresAt;
-        BanReason = banInfo.Reason;
-        BannedByUserId = banInfo.BannedById;
+        BanInfo = banInfo;
     }
 }

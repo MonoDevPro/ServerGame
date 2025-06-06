@@ -4,7 +4,7 @@ namespace ServerGame.Domain.Events;
 
 public class AccountLoggedOut : AccountEvent
 {
-    public AccountLoggedOut(long accountId) : base(accountId)
+    public AccountLoggedOut(Account account) : base(account)
     {
     }
 }

@@ -1,14 +1,39 @@
-﻿using GameServer.Shared.Database;
+﻿using Microsoft.AspNetCore.Builder;
 using ServerGame.Domain.Constants;
 using ServerGame.Domain.Entities;
 using ServerGame.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ServerGame.Application.Common.Interfaces.Database;
+using ServerGame.Infrastructure.Data.Context;
 
 namespace ServerGame.Infrastructure.Data;
 
-public class DbContextInitializer : IDbContextInitializer<ApplicationDbContext>
+public static class InitialiserExtensions
+{
+    internal static void AddAsyncSeeding(this DbContextOptionsBuilder builder, IServiceProvider serviceProvider)
+    {
+        builder.UseAsyncSeeding(async (context, _, ct) =>
+        {
+            var initialiser = serviceProvider.GetRequiredService<IDatabaseSeeding>();
+
+            await initialiser.SeedAsync();
+        });
+    }
+
+    public static async Task InitialiseDatabaseAsync(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+
+        var initialiser = scope.ServiceProvider.GetRequiredService<IDatabaseSeeding>();
+
+        await initialiser.InitialiseAsync();
+    }
+}
+
+public class DbContextInitializer : IDatabaseSeeding
 {
     private readonly ILogger<DbContextInitializer> _logger;
     private readonly ApplicationDbContext _context;
@@ -73,21 +98,5 @@ public class DbContextInitializer : IDbContextInitializer<ApplicationDbContext>
 
         // Default data
         // Seed, if necessary
-        if (!_context.TodoLists.Any())
-        {
-            _context.TodoLists.Add(new TodoList
-            {
-                Title = "Todo List",
-                Items =
-                {
-                    new TodoItem { Title = "Make a todo list 📃" },
-                    new TodoItem { Title = "Check off the first item ✅" },
-                    new TodoItem { Title = "Realise you've already done two things on the list! 🤯"},
-                    new TodoItem { Title = "Reward yourself with a nice, long nap 🏆" },
-                }
-            });
-
-            await _context.SaveChangesAsync();
-        }
     }
 }

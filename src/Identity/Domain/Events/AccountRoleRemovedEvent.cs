@@ -6,8 +6,8 @@ public class AccountRoleRemovedEvent : AccountEvent
 {
     public string Role { get; }
 
-    public AccountRoleRemovedEvent(long accountId, RoleVO role) : base(accountId)
+    public AccountRoleRemovedEvent(Account account, Role role) : base(account)
     {
-        Role = role.Value;
+        Role = role;
     }
 }

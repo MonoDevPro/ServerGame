@@ -1,242 +1,207 @@
+using System;
+using System.Linq;
+using Ardalis.GuardClauses;
 using GameServer.Shared.Domain.Entities;
 using GameServer.Shared.Domain.Exceptions;
+using ServerGame.Domain.Events;
 
-namespace ServerGame.Domain.Entities;
-
-public class Account : BaseAuditableEntity
+namespace ServerGame.Domain.Entities
 {
-    #region Propriedades
-
-    // Informações básicas da conta
-    public UsernameVO Username { get; private set; } = default!;
-    public EmailVO Email { get; private set; } = default!;
-    public bool IsActive { get; private set; }
-    public AccountType AccountType { get; private set; } = AccountType.Player;
-
-    // Informações de segurança
-    public BanInfoVO BanInfo { get; private set; } = default!;
-    public DateTime CreatedAt { get; private set; } = default!;
-    public LoginInfoVO LastLoginInfo { get; private set; } = default!;
-
-    // Permissões
-    private readonly List<RoleVO> _roles = new();
-    public IReadOnlyCollection<RoleVO> Roles => _roles.AsReadOnly();
-
-    #endregion
-
-    #region Construtores
-
-    public Account(UsernameVO username, EmailVO email)
+    public class Account : BaseAuditableEntity
     {
-        Username = username ?? throw new ArgumentNullException(nameof(username));
-        Email = email ?? throw new ArgumentNullException(nameof(email));
-        IsActive = true;
-        BanInfo = BanInfoVO.NotBanned();
-        CreatedAt = DateTime.UtcNow;
+        // Informações básicas da conta
+        public Username Username { get; private set; }
+        public Email Email { get; private set; }
+        public bool IsActive { get; private set; }
+        public AccountType AccountType { get; private set; } = AccountType.Player;
 
-        // Adiciona automaticamente a role padrão
-        _roles.Add(RoleVO.Create("player"));
+        // Informações de segurança
+        public BanInfo? BanInfo { get; private set; }
+        public LoginInfo? LastLoginInfo { get; private set; }
 
-        // Adiciona evento de domínio
-        AddDomainEvent(new AccountCreatedEvent(this));
-    }
+        // Permissões
+        private readonly List<Role> _roles = new();
+        public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
 
-    // Construtor sem parâmetros para o EF Core
-    protected Account() { }
-
-    #endregion
-
-    #region Métodos de verificação de status
-
-    public bool IsStaff() => AccountType == AccountType.Staff;
-    public bool IsAdministrator() => AccountType == AccountType.Administrator;
-    public bool HasRole(string roleName) => _roles.Any(r => r.Value.Equals(roleName, StringComparison.OrdinalIgnoreCase));
-
-    #endregion
-
-    #region Gerenciamento de estado da conta
-
-    public void Activate()
-    {
-        if (IsActive) return;
-
-        IsActive = true;
-        AddDomainEvent(new AccountActivatedEvent(Id, Username));
-    }
-
-    public void Deactivate()
-    {
-        if (!IsActive) return;
-
-        IsActive = false;
-        AddDomainEvent(new AccountDeactivatedEvent(this));
-    }
-
-    public void UpdateBan(BanInfoVO banInfo)
-    {
-        if (banInfo.IsActive() && AccountType == AccountType.Administrator)
-            throw new DomainException("Administradores não podem ser banidos");
-
-        BanInfo = banInfo;
-        AddDomainEvent(new AccountBanUpdatedEvent(Id, banInfo));
-    }
-
-    #endregion
-
-    #region Autenticação e Sessão
-
-    public void RecordSuccessfulLogin(LoginInfoVO loginInfo)
-    {
-        if (!IsActive)
-            throw new DomainException("Conta inativa não pode realizar login");
-
-        if (BanInfo.IsActive())
-            throw new DomainException($"Conta banida até {BanInfo.ExpiresAt}. Motivo: {BanInfo.Reason}");
-
-        LastLoginInfo = loginInfo;
-
-        AddDomainEvent(new AccountLoggedIn(Id, Username, loginInfo));
-    }
-
-    public void RecordFailedLoginAttempt(LoginInfoVO loginInfo)
-    {
-        AddDomainEvent(new AccountLoginFailed(Id, Username, loginInfo));
-    }
-
-    public void RecordLogout()
-    {
-        AddDomainEvent(new AccountLoggedOut(Id));
-    }
-
-    #endregion
-
-    #region Gerenciamento de dados da conta
-
-    public void UpdateEmail(EmailVO newEmail)
-    {
-        if (newEmail == null) throw new ArgumentNullException(nameof(newEmail));
-        if (newEmail.Value == Email.Value)
-            return; // Nenhuma alteração necessária
-        
-        var previousEmail = Email;
-        Email = newEmail;
-
-        AddDomainEvent(new AccountEmailUpdated(this, previousEmail, newEmail));
-    }
-    
-    public void UpdateUsername(UsernameVO newUsername)
-    {
-        if (newUsername == null) throw new ArgumentNullException(nameof(newUsername));
-        if (newUsername.Value == Username.Value)
-            return; // Nenhuma alteração necessária
-
-        var previousUsername = Username;
-        Username = newUsername;
-
-        AddDomainEvent(new AccountUsernameUpdated(this, previousUsername, newUsername));
-    }
-
-    #endregion
-
-    #region Gerenciamento de roles e tipos de conta
-
-    public void AddRole(RoleVO role)
-    {
-        if (_roles.Contains(role)) return;
-
-        if (role.Value.Equals("admin", StringComparison.OrdinalIgnoreCase) &&
-            AccountType != AccountType.Administrator)
-            throw new DomainException("Apenas administradores podem ter a role admin");
-
-        _roles.Add(role);
-        AddDomainEvent(new AccountRoleAddedEvent(Id, role));
-    }
-
-    public void RemoveRole(RoleVO role)
-    {
-        if (!_roles.Contains(role)) return;
-
-        _roles.Remove(role);
-        AddDomainEvent(new AccountRoleRemovedEvent(Id, role));
-    }
-
-    public void PromoteToStaff()
-    {
-        var previousType = AccountType;
-        if (previousType == AccountType.Staff) return;
-
-        if (BanInfo.IsActive())
-            throw new DomainException("Contas banidas não podem ser promovidas a Staff");
-
-        if (!IsActive)
-            throw new DomainException("Apenas contas ativas podem se tornar Staff");
-
-        if (!HasMinimumRequirementsForStaff())
-            throw new DomainException("Conta não possui requisitos mínimos para virar Staff");
-
-        AccountType = AccountType.Staff;
-        AddDomainEvent(new AccountTypeChangedEvent(Id, previousType, AccountType));
-    }
-
-    public void PromoteTo(AccountType newAccountType)
-    {
-        if (!CanBePromotedTo(newAccountType))
-            throw new DomainException($"Não é possível promover a conta para {newAccountType}");
-
-        var previousType = AccountType;
-        AccountType = newAccountType;
-
-        if (newAccountType == AccountType.Administrator && !HasRole("admin"))
-            _roles.Add(RoleVO.Create("admin"));
-
-        AddDomainEvent(new AccountTypeChangedEvent(Id, previousType, AccountType));
-    }
-
-    #endregion
-
-    #region Verificações de permissão e promoção
-
-    public bool HasPermissionTo(string action)
-    {
-        if (AccountType == AccountType.Administrator)
-            return true;
-
-        return action.ToLowerInvariant() switch
+        // Construtor para criação de nova conta
+        public Account(Username username, Email email)
         {
-            "moderate_chat" => Roles.Any(r => r.CanModerateChat()) || AccountType == AccountType.Staff,
-            "manage_accounts" => Roles.Any(r => r.CanManageAccounts()),
-            "view_reports" => HasRole("moderator") || HasRole("support") || IsStaff(),
-            "access_vip_area" => HasRole("vip") || AccountType == AccountType.VIP || IsStaff(),
-            "create_game_items" => HasRole("gamemaster") || AccountType == AccountType.Staff,
-            "manage_servers" => IsAdministrator(),
-            _ => false
-        };
-    }
+            Username = Guard.Against.Null(username, nameof(username));
+            Email = Guard.Against.Null(email, nameof(email));
+            IsActive = true;
+            BanInfo = BanInfo.NotBanned;
 
-    public bool CanBePromotedTo(AccountType newType)
-    {
-        if (newType <= AccountType)
-            return false;
+            // Adiciona automaticamente a role padrão
+            _roles.Add(Role.Player);
 
-        if (BanInfo.IsActive())
-            return false;
+            AddDomainEvent(new AccountCreatedEvent(this));
+        }
 
-        if (!IsActive)
-            return false;
+        // Construtor sem parâmetros para EF Core
+        protected Account() { }
 
-        return newType switch
+        // Status
+        public bool IsStaff() => AccountType == AccountType.Staff;
+        public bool IsAdministrator() => AccountType == AccountType.Administrator;
+        public bool HasRole(Role role) => _roles.Contains(role);
+        public bool HasRole(string role) => _roles.Any(r => r.Value.Equals(role, StringComparison.OrdinalIgnoreCase));
+
+        // Ativar / Desativar
+        public void Activate()
         {
-            AccountType.VIP => true,
-            AccountType.Staff => HasMinimumRequirementsForStaff(),
-            AccountType.Administrator => HasRole("admin") && IsStaff(),
-            _ => false
-        };
-    }
+            if (IsActive) return;
+            IsActive = true;
+            AddDomainEvent(new AccountActivatedEvent(this));
+        }
 
-    private bool HasMinimumRequirementsForStaff()
-    {
-        return HasRole("moderator") || HasRole("support") || HasRole("gamemaster");
-    }
+        public void Deactivate()
+        {
+            if (!IsActive) return;
+            IsActive = false;
+            AddDomainEvent(new AccountDeactivatedEvent(this));
+        }
 
-    #endregion
+        // Ban management
+        public void UpdateBan(BanInfo banInfo)
+        {
+            Guard.Against.Null(banInfo, nameof(banInfo));
+            if (BanInfo != null && BanInfo.Equals(banInfo)) return; // evita evento duplicado
+
+            if (banInfo.IsActive() && AccountType == AccountType.Administrator)
+                throw new DomainException("Administradores não podem ser banidos");
+
+            BanInfo = banInfo;
+            AddDomainEvent(new AccountBanUpdatedEvent(this, banInfo));
+        }
+
+        // Autenticação e sessão
+        public void RecordSuccessfulLogin(LoginInfo loginInfo)
+        {
+            Guard.Against.Null(loginInfo, nameof(loginInfo));
+            if (!IsActive)
+                throw new DomainException("Conta inativa não pode realizar login");
+
+            if (BanInfo != null && BanInfo.IsActive())
+                throw new DomainException($"Conta banida até {BanInfo.ExpiresAt}. Motivo: {BanInfo.Reason}");
+
+            LastLoginInfo = loginInfo;
+            AddDomainEvent(new AccountLoggedIn(this, loginInfo));
+        }
+
+        public void RecordFailedLoginAttempt(LoginInfo loginInfo)
+        {
+            Guard.Against.Null(loginInfo, nameof(loginInfo));
+            AddDomainEvent(new AccountLoginFailed(this, loginInfo));
+        }
+
+        public void RecordLogout()
+        {
+            AddDomainEvent(new AccountLoggedOut(this));
+        }
+
+        // Atualização de dados
+        public void UpdateEmail(Email newEmail)
+        {
+            Guard.Against.Null(newEmail, nameof(newEmail));
+            if (newEmail.Equals(Email)) return;
+            var previous = Email;
+            Email = newEmail;
+            AddDomainEvent(new AccountEmailUpdatedEvent(this, previous, newEmail));
+        }
+
+        public void UpdateUsername(Username newUsername)
+        {
+            Guard.Against.Null(newUsername, nameof(newUsername));
+            if (newUsername.Equals(Username)) return;
+            var previous = Username;
+            Username = newUsername;
+            AddDomainEvent(new AccountUsernameUpdatedEvent(this, previous, newUsername));
+        }
+
+        // Roles e tipo de conta
+        public void AddRole(Role role)
+        {
+            Guard.Against.Null(role, nameof(role));
+            if (_roles.Contains(role)) return;
+
+            if (role == Role.Admin && AccountType != AccountType.Administrator)
+                throw new DomainException("Apenas administradores podem ter a role admin");
+
+            _roles.Add(role);
+            AddDomainEvent(new AccountRoleAddedEvent(this, role));
+        }
+
+        public void RemoveRole(Role role)
+        {
+            Guard.Against.Null(role, nameof(role));
+            if (!_roles.Contains(role)) return;
+            _roles.Remove(role);
+            AddDomainEvent(new AccountRoleRemovedEvent(this, role));
+        }
+
+        public void PromoteToStaff()
+        {
+            if (AccountType == AccountType.Staff) return;
+            if (BanInfo != null && BanInfo.IsActive())
+                throw new DomainException("Contas banidas não podem ser promovidas a Staff");
+            if (!IsActive)
+                throw new DomainException("Apenas contas ativas podem se tornar Staff");
+            if (!HasMinimumRequirementsForStaff())
+                throw new DomainException("Conta não possui requisitos mínimos para virar Staff");
+
+            var previous = AccountType;
+            AccountType = AccountType.Staff;
+            AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
+        }
+
+        public void PromoteTo(AccountType newType)
+        {
+            if (!CanBePromotedTo(newType))
+                throw new DomainException($"Não é possível promover a conta para {newType}");
+
+            var previous = AccountType;
+            AccountType = newType;
+
+            // adiciona role admin automaticamente para admins
+            if (newType == AccountType.Administrator && !HasRole(Role.Admin))
+                _roles.Add(Role.Admin);
+
+            AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
+        }
+
+        public bool HasPermissionTo(string action)
+        {
+            if (AccountType == AccountType.Administrator)
+                return true;
+
+            return action.ToLowerInvariant() switch
+            {
+                "moderate_chat" => Roles.Any(r => r.CanModerateChat()) || IsStaff(),
+                "manage_accounts" => Roles.Any(r => r.CanManageAccounts()),
+                "view_reports" => HasRole(Role.Moderator) || HasRole(Role.Support) || IsStaff(),
+                "access_vip_area" => HasRole(Role.Vip) || AccountType == AccountType.VIP || IsStaff(),
+                "create_game_items" => HasRole(Role.GameMaster) || IsStaff(),
+                "manage_servers" => IsAdministrator(),
+                _ => false
+            };
+        }
+
+        public bool CanBePromotedTo(AccountType newType)
+        {
+            if (newType <= AccountType) return false;
+            if (BanInfo != null && BanInfo.IsActive()) return false;
+            if (!IsActive) return false;
+
+            return newType switch
+            {
+                AccountType.VIP => true,
+                AccountType.Staff => HasMinimumRequirementsForStaff(),
+                AccountType.Administrator => HasRole(Role.Admin) && IsStaff(),
+                _ => false
+            };
+        }
+
+        private bool HasMinimumRequirementsForStaff()
+            => HasRole(Role.Moderator) || HasRole(Role.Support) || HasRole(Role.GameMaster);
+    }
 }

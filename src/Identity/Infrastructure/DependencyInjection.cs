@@ -18,16 +18,8 @@ public static class DependencyInjection
         builder.Services.AddScoped<IDatabaseSeeding, DbContextInitializer>();
 
         builder.ConfigureDatabaseServicesWithAction<ApplicationDbContext>(
-            connectionName: "authdb",
+            connectionName: "serverdb",
             entityConfigurator: a => a.AddEntity<Account>(),
-            optionsBuilder: null,
-            postgreDbContextSettings: opt =>
-            {
-                opt.EnableRetryOnFailure(3);
-            });
-        
-        builder.ConfigureDatabaseServices<ApplicationUser, ApplicationDbContext>(
-            connectionName: "authdb",
             optionsBuilder: null,
             postgreDbContextSettings: opt =>
             {

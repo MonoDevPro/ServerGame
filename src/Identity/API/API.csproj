@@ -41,8 +41,8 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="NSwagOutput" />
     </Exec>
 
-    <Message Text="$(NSwagOutput)" Condition="'$(NSwagExitCode)' == '0'" Importance="low" />
-    <Error Text="$(NSwagOutput)" Condition="'$(NSwagExitCode)' != '0'" />
+    <Message Text="$(NSwagOutput)" Importance="normal" />
+    <Warning Text="NSwag execution failed: $(NSwagOutput)" Condition="'$(NSwagExitCode)' != '0'" />
   </Target>
 
 </Project>

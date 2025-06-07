@@ -1,3 +1,4 @@
+using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ServerGame.Domain.Entities;
@@ -31,36 +32,71 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             )
             .HasColumnName("Username").IsRequired();
 
-        // BanInfo pode ser mapeado como OwnsOne se for um VO complexo
-        builder.OwnsOne<BanInfo>(a => a.BanInfo, banInfo =>
+
+        builder.OwnsOne(a => a.BanInfo, ban =>
         {
-            banInfo.Property(b => b.Status).HasColumnName("BanStatus");
-            banInfo.Property(b => b.ExpiresAt).HasColumnName("BanExpiresAt");
-            banInfo.Property(b => b.Reason).HasColumnName("BanReason");
-            banInfo.Property(b => b.BannedById).HasColumnName("BannedById");
+            ban.Property(b => b.Status)
+                .HasColumnName("BanStatus")
+                .HasConversion<string>()
+                .IsRequired();
+
+            ban.Property(b => b.ExpiresAt)
+                .HasColumnName("BanExpiresAt");
+
+            ban.Property(b => b.Reason)
+                .HasColumnName("BanReason")
+                .HasMaxLength(500);
+
+            ban.Property(b => b.BannedById)
+                .HasColumnName("BannedById");
         });
 
-        // LoginInfoVO como propriedade complexa (OwnsOne)
-        builder.OwnsOne<LoginInfo>(a => a.LastLoginInfo, loginInfo =>
-        {
-            loginInfo.Property(l => l.LastLoginIp)
-                .HasColumnName("LastLoginIp")
-                .IsRequired();
-            loginInfo.Property(l => l.LastLoginDate)
-                .HasColumnName("LastLoginDate")
-                .IsRequired();
-        });
-
-        // Configuração do relacionamento com as roles
+        builder.Property(a => a.LastLoginInfo)
+            .HasConversion(
+                vo   => LoginInfoConverters.ToProvider(vo),
+                str  => LoginInfoConverters.FromProvider(str)
+            )
+            .HasColumnName("LastLoginInfo")
+            .HasMaxLength(100)
+            .IsRequired(false);
         
-        builder.OwnsMany<Role>(
-            a => a.Roles,
-            roles =>
-            {
-                roles.WithOwner().HasForeignKey("AccountId");
-                roles.Property(r => r.Value).HasColumnName("Role");
-                roles.HasKey("AccountId", "Role");
-                roles.ToTable("AccountRoles");
-            });
+        builder.OwnsMany(a => a.Roles, roles =>
+        {
+            roles.WithOwner().HasForeignKey("AccountId");
+            roles.ToTable("AccountRoles");
+
+            // converter e nome de coluna
+            roles.Property(a => a.Value)
+                .HasColumnName("Role")
+                .HasConversion(
+                    v => v,
+                    v => Role.Create(v)!
+                );
+
+            // chave primária composta: shadow AccountId + CLR Value
+            roles.HasKey("AccountId", nameof(Role.Value));
+        });
+    }
+}
+
+public static class LoginInfoConverters
+{
+    public static string? ToProvider(LoginInfo? vo) =>
+        vo is null 
+            ? null 
+            : $"{vo.LastLoginIp}|{vo.LastLoginDate:o}";
+
+    public static LoginInfo? FromProvider(string? str)
+    {
+        if (string.IsNullOrEmpty(str))
+            return null;
+
+        var parts = str.Split('|', 2);
+        var date = DateTime.Parse(
+            parts[1],
+            null,
+            System.Globalization.DateTimeStyles.RoundtripKind
+        );
+        return LoginInfo.Create(parts[0], date);
     }
 }

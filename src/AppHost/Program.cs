@@ -1,8 +1,7 @@
-using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgresPassword = builder.AddParameter("postgres-password", "aspire123!", secret: true);
+var postgresPassword = builder.AddParameter("POSTGRES-PASSWORD", "devpassword", secret: true);
 var postgres = builder
     .AddPostgres("postgres", password: postgresPassword) // Fixed password for consistent authentication
     // Set the name of the default database to auto-create on container startup.

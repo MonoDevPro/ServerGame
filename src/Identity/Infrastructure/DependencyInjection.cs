@@ -3,11 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Application.Common.Interfaces.Database;
+using ServerGame.Application.Users.Services;
 using ServerGame.Domain.Constants;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Infrastructure.Data;
 using ServerGame.Infrastructure.Data.Context;
 using ServerGame.Infrastructure.Identity;
+using ServerGame.Infrastructure.Identity.Entities;
 
 namespace ServerGame.Infrastructure;
 
@@ -38,9 +41,12 @@ public static class DependencyInjection
             .AddApiEndpoints();
 
         builder.Services.AddSingleton(TimeProvider.System);
-        builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ClaimsPrincipalFactory>();
 
         builder.Services.AddAuthorization(options =>
-            options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
+        {
+            options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator));
+        });
     }
 }

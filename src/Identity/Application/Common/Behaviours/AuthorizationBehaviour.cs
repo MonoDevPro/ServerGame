@@ -2,6 +2,7 @@
 using ServerGame.Application.Common.Exceptions;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Application.Common.Security;
+using ServerGame.Application.Users.Services;
 
 namespace ServerGame.Application.Common.Behaviours;
 

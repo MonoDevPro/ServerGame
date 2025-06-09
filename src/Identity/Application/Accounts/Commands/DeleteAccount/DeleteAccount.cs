@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using GameServer.Shared.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Accounts.Commands.CreateAccount;
 using ServerGame.Application.Common.Interfaces.Database;
@@ -8,7 +7,10 @@ using ServerGame.Application.Common.Models;
 using ServerGame.Application.Common.Security;
 using ServerGame.Domain.Constants;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.Exceptions;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Application.Accounts.Commands.DeleteAccount;
 

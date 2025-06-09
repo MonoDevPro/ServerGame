@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using GameServer.Shared.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Models;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.Exceptions;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Application.Accounts.Commands.CreateAccount;
 
@@ -26,7 +28,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand>
         _accountRepositoryWriter = accountRepositoryWriter;
         _logger = logger;
     }
-        
+    
     public async Task Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         try

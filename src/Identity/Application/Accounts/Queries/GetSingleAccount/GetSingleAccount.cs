@@ -3,7 +3,9 @@ using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Models;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Application.Accounts.Queries.GetSingleAccount;
 

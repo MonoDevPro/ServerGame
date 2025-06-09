@@ -1,7 +1,8 @@
-using GameServer.Shared.Domain.Entities;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.Enums;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Application.Accounts.Models
 {

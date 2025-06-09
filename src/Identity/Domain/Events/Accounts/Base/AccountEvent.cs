@@ -1,6 +1,7 @@
-using GameServer.Shared.Domain.Events;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Domain.Events.Base;
+namespace ServerGame.Domain.Events.Accounts.Base;
 
 /// <summary>
 /// Evento de domínio base para todos os eventos relacionados a contas de usuário

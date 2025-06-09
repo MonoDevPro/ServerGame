@@ -6,18 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediatR" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Shared\GameServer.Shared.Domain\GameServer.Shared.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Reference Include="Ardalis.GuardClauses">
       <HintPath>..\..\..\..\..\..\.nuget\packages\ardalis.guardclauses\4.6.0\lib\net8.0\Ardalis.GuardClauses.dll</HintPath>
     </Reference>

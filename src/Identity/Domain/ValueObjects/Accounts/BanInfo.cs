@@ -1,6 +1,6 @@
-namespace ServerGame.Domain.ValueObjects;
+namespace ServerGame.Domain.ValueObjects.Accounts;
 
-public sealed record BanInfo
+public sealed record BanInfo : ValueObject
 {
     public BanStatus Status { get; }
     public DateTime? ExpiresAt { get; }
@@ -65,4 +65,13 @@ public sealed record BanInfo
         BanStatus.PermanentBan => true,
         BanStatus.TemporaryBan => ExpiresAt > DateTime.UtcNow,
         _ => false
-    };    }
+    };
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Status;
+        yield return ExpiresAt?? default; // evita nulls
+        yield return Reason ?? string.Empty; // evita nulls
+        yield return BannedById ?? 0; // evita nulls
+    }
+}

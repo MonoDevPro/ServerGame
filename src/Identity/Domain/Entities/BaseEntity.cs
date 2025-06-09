@@ -1,16 +1,17 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using GameServer.Shared.Domain.Events;
+using DomainEvent = ServerGame.Domain.Events.DomainEvent;
 
-namespace GameServer.Shared.Domain.Entities;
+namespace ServerGame.Domain.Entities;
 
-public abstract class BaseEntity
+public abstract class BaseEntity : IHasDomainEvents
 {
     public long Id { get; private set; } // identidade
     
-    private readonly List<DomainEvent> _domainEvents = []; // eventos de domínio :contentReference[oaicite:9]{index=9}
+    private readonly List<IDomainEvent> _domainEvents = []; // eventos de domínio :contentReference[oaicite:9]{index=9}
     [NotMapped]
-    public IReadOnlyCollection<DomainEvent> DomainEvents => _domainEvents;
+    public IReadOnlyCollection<IDomainEvent> Events => _domainEvents;
 
+    // Construtor sem parâmetros é necessário para o EF Core
     protected BaseEntity() { }
 
     protected BaseEntity(long id)
@@ -18,16 +19,16 @@ public abstract class BaseEntity
         Id = id;
     }
 
-    public void AddDomainEvent(DomainEvent eventItem)
+    public void AddDomainEvent(IDomainEvent eventItem)
         => _domainEvents.Add(eventItem);
 
-    public void RemoveDomainEvent(DomainEvent eventItem)
+    public void RemoveDomainEvent(IDomainEvent eventItem)
         => _domainEvents.Remove(eventItem);
 
-    public IReadOnlyCollection<DomainEvent> GetDomainEvents()
+    public IReadOnlyCollection<IDomainEvent> GetDomainEvents()
         => _domainEvents.AsReadOnly();
 
-    public void ClearDomainEvents()
+    public void ClearEvents()
         => _domainEvents.Clear();
 
     public override bool Equals(object? obj)
@@ -35,14 +36,12 @@ public abstract class BaseEntity
         if (obj is not BaseEntity other) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetUnproxiedType(this) != GetUnproxiedType(other)) return false;
-        //if (Id is null || other.Id is null) return false;
         return Id.Equals(other.Id);
     }
 
     public static bool operator ==(BaseEntity? a, BaseEntity? b)
     {
         if (ReferenceEquals(a, b)) return true;
-        //if (a.Id is null || b.Id is null) return false;
         return a != null && a.Equals(b);
     }
 
@@ -50,7 +49,7 @@ public abstract class BaseEntity
 
     public override int GetHashCode()
         => (GetUnproxiedType(this).ToString() + Id)
-            .GetHashCode(); // hash baseado em Id :contentReference[oaicite:10]{index=10}
+            .GetHashCode(); // hash baseado em Id
 
     internal static Type GetUnproxiedType(object obj)
     {

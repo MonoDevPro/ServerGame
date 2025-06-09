@@ -1,8 +1,8 @@
 using System.Net;
 
-namespace ServerGame.Domain.ValueObjects;
+namespace ServerGame.Domain.ValueObjects.Accounts;
 
-public sealed record LoginInfo
+public sealed record LoginInfo : ValueObject
 {
     public string LastLoginIp { get; }
     public DateTime LastLoginDate { get; }
@@ -31,5 +31,11 @@ public sealed record LoginInfo
 
         result = new LoginInfo(ipAddress.Trim(), dateUtc);
         return true;
+    }
+
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return LastLoginIp;
+        yield return LastLoginDate;
     }
 }

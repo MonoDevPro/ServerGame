@@ -1,28 +1,33 @@
+using Ardalis.GuardClauses;
 using ServerGame.Domain.Rules;
 
-namespace ServerGame.Domain.ValueObjects;
+namespace ServerGame.Domain.ValueObjects.Accounts;
 
-public readonly record struct Email
+public sealed record Email : ValueObject
 {
     public string Value { get; }
     private Email(string value) => Value = value;
 
     public static Email Create(string input)
         => TryCreate(input, out var vo)
-            ? vo
+            ? Guard.Against.Null(vo, nameof(input))
             : throw new ArgumentException("Deve ser um e-mail válido.", nameof(input));
 
-    public static bool TryCreate(string input, out Email result)
+    public static bool TryCreate(string input, out Email? result)
     {
         if (EmailRule.IsValidEmail(input))
         {
             result = new Email(input.Trim().ToLowerInvariant());
             return true;
         }
-        result = default;
+        result = null;
         return false;
     }
 
     public static implicit operator string(Email e) => e.Value;
     public static implicit operator Email(string s) => Create(s);
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
+    }
 }

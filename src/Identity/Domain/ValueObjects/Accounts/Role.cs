@@ -1,18 +1,15 @@
-using System;
-using System.Collections.Generic;
+namespace ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Domain.ValueObjects;
-
-public sealed record Role
+public sealed record Role: ValueObject
 {
     // Definições dos papéis disponíveis
-    public static Role Player         => new("player");
-    public static Role Vip            => new("vip");
-    public static Role Moderator      => new("moderator");
-    public static Role GameMaster     => new("gamemaster");
-    public static Role Admin          => new("admin");
-    public static Role Support        => new("support");
-    public static Role ContentCreator => new("contentCreator");
+    public static Role Player         => new(Constants.Roles.Player);
+    public static Role Vip            => new(Constants.Roles.Vip);
+    public static Role Moderator      => new(Constants.Roles.Moderator);
+    public static Role GameMaster     => new(Constants.Roles.GameMaster);
+    public static Role Admin          => new(Constants.Roles.Administrator);
+    public static Role Support        => new(Constants.Roles.Support);
+    public static Role ContentCreator => new(Constants.Roles.ContentCreator);
 
     // Internamente mantemos a lista de valores válidos
     private static readonly HashSet<string> ValidRoles = new(
@@ -65,6 +62,10 @@ public sealed record Role
     public bool CanManageAccounts() => this == Admin;
 
     public override string ToString() => Value;
+    protected override IEnumerable<object> GetEqualityComponents()
+    {
+        yield return Value;
+    }
 
     public static implicit operator string(Role r) => r.Value;
     public static implicit operator Role?(string s) => Create(s);

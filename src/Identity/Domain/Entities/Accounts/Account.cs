@@ -1,11 +1,9 @@
-using System;
-using System.Linq;
 using Ardalis.GuardClauses;
-using GameServer.Shared.Domain.Entities;
-using GameServer.Shared.Domain.Exceptions;
-using ServerGame.Domain.Events;
+using ServerGame.Domain.Events.Accounts;
+using ServerGame.Domain.Exceptions;
+using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Domain.Entities;
+namespace ServerGame.Domain.Entities.Accounts;
 
 public class Account : BaseAuditableEntity
 {
@@ -36,9 +34,6 @@ public class Account : BaseAuditableEntity
 
         AddDomainEvent(new AccountCreatedEvent(this));
     }
-
-    // Construtor sem parâmetros para EF Core
-    protected Account() { }
 
     // Status
     public bool IsStaff() => AccountType == AccountType.Staff;

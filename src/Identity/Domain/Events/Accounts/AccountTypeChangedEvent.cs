@@ -1,6 +1,7 @@
-using ServerGame.Domain.Events.Base;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.Events.Accounts.Base;
 
-namespace ServerGame.Domain.Events;
+namespace ServerGame.Domain.Events.Accounts;
 
 /// <summary>
 /// Evento disparado quando o tipo de conta de um usuário é alterado

@@ -1,4 +1,4 @@
-﻿namespace GameServer.Shared.Domain.Entities;
+﻿namespace ServerGame.Domain.Entities;
 
 public abstract class BaseAuditableEntity : BaseEntity
 {

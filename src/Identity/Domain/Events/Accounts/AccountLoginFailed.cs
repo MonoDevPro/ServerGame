@@ -1,6 +1,8 @@
-using ServerGame.Domain.Events.Base;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.Events.Accounts.Base;
+using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Domain.Events;
+namespace ServerGame.Domain.Events.Accounts;
 
 public class AccountLoginFailed : AccountEvent
 {

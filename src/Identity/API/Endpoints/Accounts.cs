@@ -1,4 +1,3 @@
-using GameServer.Shared.Domain.Exceptions;
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServerGame.Api.Infrastructure;
 using ServerGame.Application.Accounts.Commands.CreateAccount;
@@ -8,7 +7,9 @@ using ServerGame.Application.Accounts.Commands.UpdateAccount;
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Accounts.Queries.GetSingleAccount;
 using ServerGame.Application.Common.Exceptions;
+using ServerGame.Domain.Exceptions;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Api.Endpoints;
 
@@ -32,7 +33,7 @@ public class Accounts : EndpointGroupBase
 
         try
         {
-            var query = new GetSingleAccountQuery(usernameOrEmailVO);
+            var query = new GetSingleAccountQuery(usernameOrEmailVO!);
             var result = await sender.Send(query);
             return TypedResults.Ok(result);
         }
@@ -92,7 +93,7 @@ public class Accounts : EndpointGroupBase
 
         try
         {
-            var command = new DeleteAccountCommand(usernameOrEmailVO);
+            var command = new DeleteAccountCommand(usernameOrEmailVO!);
             await sender.Send(command);
             return TypedResults.NoContent();
         }

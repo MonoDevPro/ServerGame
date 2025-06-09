@@ -1,6 +1,5 @@
 using ServerGame.Api;
 using ServerGame.Api.Infrastructure;
-using ServerGame.Application;
 using ServerGame.Infrastructure;
 using ServerGame.Infrastructure.Data;
 using ServerGame.ServiceDefaults;
@@ -18,14 +17,12 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{
+    // Só em Development: inicializa bancos (migrate/ensure)
     await app.InitialiseDatabaseAsync();
-}
-else
-{
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+
+// A partir daqui, nunca execute MigrateAsync() em Production ou no NSwag
+if (!app.Environment.IsDevelopment())
     app.UseHsts();
-}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -52,5 +49,10 @@ app.Run();
 
 namespace ServerGame.Api
 {
-    public partial class Program { }
+    public partial class Program
+    {
+        // This class is used to allow the Program class to be partial, which is required for the WebApplicationBuilder
+        // to be created in the Program.cs file.
+        // It also allows the Program class to be used in tests.
+    }
 }

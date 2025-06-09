@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Infrastructure.Data.Context;
+using ServerGame.Infrastructure.Identity.Entities;
 
 namespace ServerGame.Infrastructure.Data;
 
@@ -85,7 +86,7 @@ public class DbContextInitializer : IDatabaseSeeding
         }
 
         // Default users
-        var administrator = new ApplicationUser { UserName = "administrator@localhost", Email = "administrator@localhost" };
+        var administrator = new ApplicationUser { UserName = "administrator", Email = "administrator@localhost" };
 
         if (_userManager.Users.All(u => u.UserName != administrator.UserName))
         {

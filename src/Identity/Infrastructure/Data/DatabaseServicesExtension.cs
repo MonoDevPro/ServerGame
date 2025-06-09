@@ -16,30 +16,6 @@ namespace ServerGame.Infrastructure.Data;
 public static class DatabaseServicesExtension
 {
     /// <summary>
-    /// Configura os serviços de banco de dados com suporte para uma entidade
-    /// </summary>
-    /// <param name="hostBuilder">Coleção de serviços</param>
-    /// <param name="connectionName">Nome da string de conexão</param>
-    /// <param name="postgreDbContextSettings">Configurações do provedor PostgreSQL</param>
-    /// <param name="optionsBuilder">Configurações adicionais do contexto</param>
-    public static IHostApplicationBuilder ConfigureDatabaseServices<TEntity, TContext>(
-        this IHostApplicationBuilder hostBuilder, 
-        string connectionName,
-        Action<NpgsqlDbContextOptionsBuilder>? postgreDbContextSettings = null,
-        Action<DbContextOptionsBuilder>? optionsBuilder = null)
-        where TEntity : class
-        where TContext : DbContext
-    {
-        // Configura o DbContext e os interceptors
-        ConfigureDbContext<TContext>(hostBuilder, connectionName, postgreDbContextSettings, optionsBuilder);
-        
-        // Registra os repositórios para a entidade especificada
-        RegisterEntityRepositories<TEntity, TContext>(hostBuilder);
-        
-        return hostBuilder;
-    }
-
-    /// <summary>
     /// Configura os serviços de banco de dados com suporte para múltiplas entidades usando expressões lambda
     /// </summary>
     /// <param name="hostBuilder">Coleção de serviços</param>
@@ -136,28 +112,25 @@ public static class DatabaseServicesExtension
         where TContext : DbContext
     {
         hostBuilder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DispatchDomainEventsInterceptor>();
+        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DispatchEventsInterceptor>();
         
         hostBuilder.Services.AddDbContext<TContext>((sp, options) =>
         {
             var connectionString = hostBuilder.Configuration.GetConnectionString(connectionName);
             
-            // Use the connection string named "authdb" (will be injected by Aspire)
-            if (string.IsNullOrEmpty(connectionString))
-                // Fallback for local development
-                options.UseInMemoryDatabase($"{connectionName}-Memory");
-            else
-            {
-                options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            Guard.Against.Null(connectionString, message: "Connection string not found.");
+            
+            // Use the connection string named "serverdb" (will be injected by Aspire)
+            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
                 
-                options.UseNpgsql(connectionString, postgreDbContextSettings)
-                    .AddAsyncSeeding(sp);
-            }
-            // Apply additional configuration if provided
+            options.UseNpgsql(connectionString, postgreDbContextSettings)
+                .AddAsyncSeeding(sp);
+            
             optionsBuilder?.Invoke(options);
         });
         
+        // Register the DbContext as a design-time factory
         hostBuilder.EnrichNpgsqlDbContext<TContext>();
+        
     }
 }
-

@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Infrastructure.Identity;
+using ServerGame.Infrastructure.Identity.Entities;
 
 namespace ServerGame.Infrastructure.Data.Context;
 

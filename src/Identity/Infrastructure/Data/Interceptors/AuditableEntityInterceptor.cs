@@ -1,8 +1,8 @@
-using GameServer.Shared.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using ServerGame.Application.Common.Interfaces;
+using ServerGame.Domain.Entities;
 
 namespace ServerGame.Infrastructure.Data.Interceptors;
 

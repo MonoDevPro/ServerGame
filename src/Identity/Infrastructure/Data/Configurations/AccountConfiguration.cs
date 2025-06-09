@@ -2,7 +2,9 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ServerGame.Domain.Entities;
+using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.ValueObjects;
+using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Infrastructure.Data.Configurations;
 
@@ -10,12 +12,11 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
+        builder.HasBaseType<BaseAuditableEntity>();
+        
         // Configurações de propriedades
-        builder.HasKey(a => a.Id);
         builder.Property(a => a.IsActive);
         builder.Property(a => a.AccountType);
-        builder.Property(a => a.Created);
-        builder.Ignore(a => a.DomainEvents); // Ignora eventos de domínio para evitar loops infinitos
 
         // Configuração dos Value Objects com conversores customizados
         builder.Property(a => a.Email)

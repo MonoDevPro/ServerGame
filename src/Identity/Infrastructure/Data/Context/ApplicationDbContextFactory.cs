@@ -10,7 +10,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
         // Use PostgreSQL for design-time
-        optionsBuilder.UseNpgsql("Host=localhost;Database=ServerGameDb;Username=postgres;Password=postgres");
+        optionsBuilder.UseNpgsql("Host=localhost;Database=serverdb;Username=postgres;Password=devpassword");
 
         return new ApplicationDbContext(optionsBuilder.Options);
     }

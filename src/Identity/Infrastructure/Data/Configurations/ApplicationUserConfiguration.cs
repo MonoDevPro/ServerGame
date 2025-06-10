@@ -24,6 +24,6 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
             .IsRequired(false);
 
         // Ignorar eventos de domínio (não persistir no banco)
-        builder.Ignore(u => u.Notifications);
+        builder.Ignore(u => u.PendingNotifications);
     }
 }

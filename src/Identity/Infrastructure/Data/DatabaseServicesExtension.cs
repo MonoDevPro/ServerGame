@@ -112,7 +112,7 @@ public static class DatabaseServicesExtension
         where TContext : DbContext
     {
         hostBuilder.Services.AddScoped<ISaveChangesInterceptor, AuditableEntityInterceptor>();
-        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DispatchEventsInterceptor>();
+        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DispatchNotificationsInterceptor>();
         
         hostBuilder.Services.AddDbContext<TContext>((sp, options) =>
         {

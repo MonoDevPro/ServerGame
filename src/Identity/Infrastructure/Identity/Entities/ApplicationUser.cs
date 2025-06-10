@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Application.Common.Interfaces;
+using ServerGame.Application.Common.Interfaces.Events;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Infrastructure.Identity.Entities;
@@ -20,22 +21,22 @@ public class ApplicationUser : IdentityUser, IHasNotifications
     /// <summary>
     /// Eventos de domínio para este usuário
     /// </summary>
-    private readonly List<INotification> _events = [];
-    public IReadOnlyCollection<INotification> Notifications => _events.AsReadOnly();
+    private readonly List<INotification> _notifications = [];
+    public IReadOnlyCollection<INotification> PendingNotifications => _notifications.AsReadOnly();
 
     /// <summary>
     /// Limpa os eventos de domínio
     /// </summary>
-    public void ClearEvents()
+    public void ClearPendingNotifications()
     {
-        _events.Clear();
+        _notifications.Clear();
     }
 
     /// <summary>
     /// Adiciona um evento de domínio
     /// </summary>
-    public void AddEvent(INotification @event)
+    public void AddNotification(INotification @event)
     {
-        _events.Add(@event);
+        _notifications.Add(@event);
     }
 }

@@ -6,7 +6,7 @@ namespace ServerGame.Domain.Events.Accounts.Base;
 /// <summary>
 /// Evento de domínio base para todos os eventos relacionados a contas de usuário
 /// </summary>
-public abstract class AccountEvent : DomainEvent
+public abstract class AccountDomainEvent : DomainEvent
 {
     /// <summary>
     /// ID do usuário associado ao evento
@@ -15,7 +15,7 @@ public abstract class AccountEvent : DomainEvent
     public Username Username { get; }
     public Email Email { get; } 
     
-    protected AccountEvent(Account account) : base()
+    protected AccountDomainEvent(Account account) : base()
     {
         AccountId = account.Id;
         Username = account.Username;

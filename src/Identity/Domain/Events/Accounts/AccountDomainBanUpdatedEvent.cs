@@ -7,10 +7,10 @@ namespace ServerGame.Domain.Events.Accounts;
 /// <summary>
 /// Evento disparado quando um usuário é banido do sistema
 /// </summary>
-public class AccountBanUpdatedEvent : AccountEvent
+public class AccountDomainBanUpdatedEvent : AccountDomainEvent
 {
     BanInfo BanInfo { get;}  
-    public AccountBanUpdatedEvent(Account account, BanInfo banInfo) : base(account)
+    public AccountDomainBanUpdatedEvent(Account account, BanInfo banInfo) : base(account)
     {
         BanInfo = banInfo;
     }

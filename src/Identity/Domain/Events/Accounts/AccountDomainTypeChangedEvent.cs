@@ -6,7 +6,7 @@ namespace ServerGame.Domain.Events.Accounts;
 /// <summary>
 /// Evento disparado quando o tipo de conta de um usuário é alterado
 /// </summary>
-public class AccountTypeChangedEvent : AccountEvent
+public class AccountDomainTypeChangedEvent : AccountDomainEvent
 {
     /// <summary>
     /// Tipo de conta anterior
@@ -28,7 +28,7 @@ public class AccountTypeChangedEvent : AccountEvent
     /// </summary>
     public string? Reason { get; }
     
-    public AccountTypeChangedEvent(
+    public AccountDomainTypeChangedEvent(
         Account account,
         AccountType previousAccountType,
         AccountType newAccountType,

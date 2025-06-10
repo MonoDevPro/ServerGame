@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations.Schema;
-using DomainEvent = ServerGame.Domain.Events.DomainEvent;
 
 namespace ServerGame.Domain.Entities;
 
@@ -19,16 +18,16 @@ public abstract class BaseEntity : IHasDomainEvents
         Id = id;
     }
 
-    public void AddDomainEvent(IDomainEvent eventItem)
-        => _domainEvents.Add(eventItem);
+    public void AddDomainEvent(IDomainEvent domainEventItem)
+        => _domainEvents.Add(domainEventItem);
 
-    public void RemoveDomainEvent(IDomainEvent eventItem)
-        => _domainEvents.Remove(eventItem);
+    public void RemoveDomainEvent(IDomainEvent domainEventItem)
+        => _domainEvents.Remove(domainEventItem);
 
     public IReadOnlyCollection<IDomainEvent> GetDomainEvents()
         => _domainEvents.AsReadOnly();
 
-    public void ClearEvents()
+    public void ClearDomainEvents()
         => _domainEvents.Clear();
 
     public override bool Equals(object? obj)

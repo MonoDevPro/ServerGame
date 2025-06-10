@@ -32,7 +32,7 @@ public class Account : BaseAuditableEntity
         // Adiciona automaticamente a role padrão
         _roles.Add(Role.Player);
 
-        AddDomainEvent(new AccountCreatedEvent(this));
+        AddDomainEvent(new AccountDomainCreatedEvent(this));
     }
 
     // Status
@@ -47,14 +47,14 @@ public class Account : BaseAuditableEntity
         if (IsActive) 
             return;
         IsActive = true;
-        AddDomainEvent(new AccountActivatedEvent(this));
+        AddDomainEvent(new AccountDomainActivatedEvent(this));
     }
 
     public void Deactivate()
     {
         if (!IsActive) return;
         IsActive = false;
-        AddDomainEvent(new AccountDeactivatedEvent(this));
+        AddDomainEvent(new AccountDomainDeactivatedEvent(this));
     }
 
     // Ban management
@@ -67,7 +67,7 @@ public class Account : BaseAuditableEntity
             throw new DomainException("Administradores não podem ser banidos");
 
         BanInfo = banInfo;
-        AddDomainEvent(new AccountBanUpdatedEvent(this, banInfo));
+        AddDomainEvent(new AccountDomainBanUpdatedEvent(this, banInfo));
     }
 
     // Autenticação e sessão
@@ -81,18 +81,18 @@ public class Account : BaseAuditableEntity
             throw new DomainException($"Conta banida até {BanInfo.ExpiresAt}. Motivo: {BanInfo.Reason}");
 
         LastLoginInfo = loginInfo;
-        AddDomainEvent(new AccountLoggedIn(this, loginInfo));
+        AddDomainEvent(new AccountDomainLoggedIn(this, loginInfo));
     }
 
     public void RecordFailedLoginAttempt(LoginInfo loginInfo)
     {
         Guard.Against.Null(loginInfo, nameof(loginInfo));
-        AddDomainEvent(new AccountLoginFailed(this, loginInfo));
+        AddDomainEvent(new AccountDomainLoginFailed(this, loginInfo));
     }
 
     public void RecordLogout()
     {
-        AddDomainEvent(new AccountLoggedOut(this));
+        AddDomainEvent(new AccountDomainLoggedOut(this));
     }
 
     // Atualização de dados
@@ -102,7 +102,7 @@ public class Account : BaseAuditableEntity
         if (newEmail.Equals(Email)) return;
         var previous = Email;
         Email = newEmail;
-        AddDomainEvent(new AccountEmailUpdatedEvent(this, previous, newEmail));
+        AddDomainEvent(new AccountDomainEmailUpdatedEvent(this, previous, newEmail));
     }
 
     public void UpdateUsername(Username newUsername)
@@ -111,7 +111,7 @@ public class Account : BaseAuditableEntity
         if (newUsername.Equals(Username)) return;
         var previous = Username;
         Username = newUsername;
-        AddDomainEvent(new AccountUsernameUpdatedEvent(this, previous, newUsername));
+        AddDomainEvent(new AccountDomainUsernameUpdatedEvent(this, previous, newUsername));
     }
 
     // Roles e tipo de conta
@@ -124,7 +124,7 @@ public class Account : BaseAuditableEntity
             throw new DomainException("Apenas administradores podem ter a role admin");
 
         _roles.Add(role);
-        AddDomainEvent(new AccountRoleAddedEvent(this, role));
+        AddDomainEvent(new AccountDomainRoleAddedEvent(this, role));
     }
 
     public void RemoveRole(Role role)
@@ -132,7 +132,7 @@ public class Account : BaseAuditableEntity
         Guard.Against.Null(role, nameof(role));
         if (!_roles.Contains(role)) return;
         _roles.Remove(role);
-        AddDomainEvent(new AccountRoleRemovedEvent(this, role));
+        AddDomainEvent(new AccountDomainRoleRemovedEvent(this, role));
     }
 
     public void PromoteToStaff()
@@ -147,7 +147,7 @@ public class Account : BaseAuditableEntity
 
         var previous = AccountType;
         AccountType = AccountType.Staff;
-        AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
+        AddDomainEvent(new AccountDomainTypeChangedEvent(this, previous, AccountType));
     }
 
     public void PromoteTo(AccountType newType)
@@ -162,7 +162,7 @@ public class Account : BaseAuditableEntity
         if (newType == AccountType.Administrator && !HasRole(Role.Admin))
             _roles.Add(Role.Admin);
 
-        AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
+        AddDomainEvent(new AccountDomainTypeChangedEvent(this, previous, AccountType));
     }
 
     public bool HasPermissionTo(string action)

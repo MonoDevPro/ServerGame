@@ -4,11 +4,11 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountRoleAddedEvent : AccountEvent
+public class AccountDomainRoleAddedEvent : AccountDomainEvent
 {
     public Role Role { get; }
 
-    public AccountRoleAddedEvent(Account account, Role role) : base(account)
+    public AccountDomainRoleAddedEvent(Account account, Role role) : base(account)
     {
         Role = role;
     }

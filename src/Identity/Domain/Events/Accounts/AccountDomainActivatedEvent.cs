@@ -3,9 +3,9 @@ using ServerGame.Domain.Events.Accounts.Base;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountActivatedEvent : AccountEvent
+public class AccountDomainActivatedEvent : AccountDomainEvent
 {
-    public AccountActivatedEvent(
+    public AccountDomainActivatedEvent(
         Account account
         ) : base(account)
     {

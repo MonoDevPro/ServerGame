@@ -4,12 +4,12 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountEmailUpdatedEvent : AccountEvent
+public class AccountDomainEmailUpdatedEvent : AccountDomainEvent
 {
     public Email PreviousEmail { get; }
     public Email NewEmail { get; }
     
-    public AccountEmailUpdatedEvent(
+    public AccountDomainEmailUpdatedEvent(
         Account account,
         Email previousEmail,
         Email newEmail

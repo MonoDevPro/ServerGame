@@ -4,12 +4,12 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountUsernameUpdatedEvent : AccountEvent
+public class AccountDomainUsernameUpdatedEvent : AccountDomainEvent
 {
     public string PreviousUsername { get; }
     public string NewUsername { get; }
     
-    public AccountUsernameUpdatedEvent(
+    public AccountDomainUsernameUpdatedEvent(
         Account account,
         Username previousUsername,
         Username newUsername

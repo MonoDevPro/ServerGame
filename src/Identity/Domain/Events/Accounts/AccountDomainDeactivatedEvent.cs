@@ -3,9 +3,9 @@ using ServerGame.Domain.Events.Accounts.Base;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountLoggedOut : AccountEvent
+public class AccountDomainDeactivatedEvent : AccountDomainEvent
 {
-    public AccountLoggedOut(Account account) : base(account)
+    public AccountDomainDeactivatedEvent(Account account) : base(account)
     {
     }
 }

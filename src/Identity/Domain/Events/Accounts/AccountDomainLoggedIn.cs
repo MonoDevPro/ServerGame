@@ -4,11 +4,11 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountLoggedIn : AccountEvent
+public class AccountDomainLoggedIn : AccountDomainEvent
 {
     public LoginInfo LoginInfo { get; }
 
-    public AccountLoggedIn(
+    public AccountDomainLoggedIn(
         Account account,
         LoginInfo loginInfo) : base(account)
     {

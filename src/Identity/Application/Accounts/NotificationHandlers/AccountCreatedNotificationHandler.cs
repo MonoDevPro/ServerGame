@@ -1,9 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
-using ServerGame.Application.Accounts.Notifications;
+using ServerGame.Application.Common.Adapters;
+using ServerGame.Domain.Events.Accounts;
 
 namespace ServerGame.Application.Accounts.NotificationHandlers;
 
-public class AccountCreatedNotificationHandler : INotificationHandler<AccountCreatedNotification>
+public class AccountCreatedNotificationHandler : INotificationHandler<DomainEventNotification<AccountDomainCreatedEvent>>
 {
     private readonly ILogger<AccountCreatedNotificationHandler> _logger;
 
@@ -12,7 +13,7 @@ public class AccountCreatedNotificationHandler : INotificationHandler<AccountCre
         _logger = logger;
     }
 
-    public Task Handle(AccountCreatedNotification notification, CancellationToken cancellationToken)
+    public Task Handle(DomainEventNotification<AccountDomainCreatedEvent> notification, CancellationToken cancellationToken)
     {
         _logger.LogInformation("ServerGame Domain Event: {DomainEvent}", notification.GetType().Name);
         

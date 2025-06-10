@@ -41,10 +41,7 @@ public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand>
 
             var saveResult = await _accountRepositoryWriter.SaveChangesAsync(cancellationToken);
             
-            Guard.Against.Default(
-                saveResult, 
-                nameof(saveResult), 
-                "Account could not be created in the database."
+            Guard.Against.Default(saveResult, nameof(saveResult), "Account could not be created in the database."
             );
         }
         catch (DomainException ex)

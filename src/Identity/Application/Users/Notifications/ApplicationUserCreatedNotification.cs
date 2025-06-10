@@ -1,4 +1,4 @@
-using ServerGame.Application.Users.Notifications.Base;
+using ServerGame.Application.Common.Interfaces;
 
 namespace ServerGame.Application.Users.Notifications;
 
@@ -7,4 +7,4 @@ public record ApplicationUserCreatedNotification(
     string UserId,
     string UserName,
     string Email
-    ) : ApplicationUserNotification;
+    ) : INotification;

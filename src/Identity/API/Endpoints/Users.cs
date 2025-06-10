@@ -58,7 +58,7 @@ public class Users : BaseIdentityEndpoints<ApplicationUser>
         await userStore.SetUserNameAsync(user, userName, CancellationToken.None);
         await emailStore.SetEmailAsync(user, email, CancellationToken.None);
         
-        user.AddEvent(new ApplicationUserCreatedNotification(
+        user.AddNotification(new ApplicationUserCreatedNotification(
             await userManager.GetUserIdAsync(user),
             userName,
             email

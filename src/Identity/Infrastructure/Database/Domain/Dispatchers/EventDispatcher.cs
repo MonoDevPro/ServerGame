@@ -1,12 +1,14 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
+using ServerGame.Domain.Events;
+using ServerGame.Infrastructure.Data.Events;
 
-namespace ServerGame.Infrastructure.Data.Events;
+namespace ServerGame.Infrastructure.Database.Domain.Dispatchers;
 
-public class NotificationDispatcher(IMediator mediator, ILogger<NotificationDispatcher> logger) : INotificationDispatcher<INotification>
+public class EventDispatcher(IMediator mediator, ILogger<NotificationDispatcher> logger) : IEventDispatcher<IDomainEvent>
 {
-    public virtual async Task DispatchAsync(IEnumerable<INotification> events, CancellationToken cancellationToken = default)
+    public virtual async Task DispatchAsync(IEnumerable<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         var exceptions = new List<Exception>();
 

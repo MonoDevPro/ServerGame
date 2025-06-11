@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Events;
+using ServerGame.Application.Users.Notifications;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Infrastructure.Identity.Entities;
@@ -23,6 +23,20 @@ public class ApplicationUser : IdentityUser, IHasNotifications
     /// </summary>
     private readonly List<INotification> _notifications = [];
     public IReadOnlyCollection<INotification> PendingNotifications => _notifications.AsReadOnly();
+
+    public ApplicationUser() : base() { }
+    
+    // Método de fábrica para criar e adicionar notificação
+    public static ApplicationUser Create(string userName, string email)
+    {
+        var user = new ApplicationUser();
+        user.AddNotification(new ApplicationUserCreatedNotification(
+            user.Id,
+            Guard.Against.Null(userName),
+            Guard.Against.Null(email)
+        ));
+        return user;
+    }
 
     /// <summary>
     /// Limpa os eventos de domínio

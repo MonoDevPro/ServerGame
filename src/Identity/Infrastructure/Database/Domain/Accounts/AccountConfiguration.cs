@@ -1,12 +1,10 @@
-using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ServerGame.Domain.Entities;
 using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Domain.ValueObjects;
 using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Infrastructure.Data.Configurations;
+namespace ServerGame.Infrastructure.Database.Domain.Accounts;
 
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {

@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Entities;
 
-namespace ServerGame.Infrastructure.Data.Interceptors;
+namespace ServerGame.Infrastructure.Database.Common.Interceptors;
 
-public class AuditableEntityInterceptor : SaveChangesInterceptor
+public class UnityOfWorkAuditableInterceptor : IPreSaveInterceptor
 {
     private readonly IUser _user;
     private readonly TimeProvider _dateTime;
 
-    public AuditableEntityInterceptor(
+    public UnityOfWorkAuditableInterceptor(
         IUser user,
         TimeProvider dateTime)
     {
@@ -19,20 +19,12 @@ public class AuditableEntityInterceptor : SaveChangesInterceptor
         _dateTime = dateTime;
     }
 
-    public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
+    public Task PreSaveChangesAsync(DbContext context)
     {
-        UpdateEntities(eventData.Context);
-
-        return base.SavingChanges(eventData, result);
+        UpdateEntities(context);
+        return Task.CompletedTask;
     }
-
-    public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
-    {
-        UpdateEntities(eventData.Context);
-
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
-    }
-
+    
     public void UpdateEntities(DbContext? context)
     {
         if (context == null) return;

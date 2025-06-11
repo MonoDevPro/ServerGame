@@ -1,9 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ServerGame.Infrastructure.Identity;
 using ServerGame.Infrastructure.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Data.Configurations;
+namespace ServerGame.Infrastructure.Database.Identity;
 
 /// <summary>
 /// Configuração do Entity Framework para ApplicationUser

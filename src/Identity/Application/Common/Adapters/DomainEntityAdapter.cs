@@ -1,5 +1,4 @@
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Events;
 using ServerGame.Domain.Entities;
 using ServerGame.Domain.Events;
 

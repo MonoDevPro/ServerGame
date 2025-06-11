@@ -34,42 +34,28 @@ public class Users : BaseIdentityEndpoints<ApplicationUser>
         IEmailSender<ApplicationUser> emailSender, LinkGenerator linkGenerator)
     {
         if (!userManager.SupportsUserEmail)
-        {
             throw new NotSupportedException($"{nameof(Users)} requer um user store com suporte a e-mail.");
-        }
         
         // TODO: Precisamos adicionar uma validação mais robust para o nome de usuário e e-mail, como verificar se já existem usuários com esses dados.
         var userName = registration.Username.Trim();
         
         if (string.IsNullOrEmpty(userName))
-        {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidUserName(userName)));
-        }
 
         var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
         var email = registration.Email;
 
         if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
-        {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email)));
-        }
 
-        var user = new ApplicationUser();
+        var user = ApplicationUser.Create(userName, email);
         await userStore.SetUserNameAsync(user, userName, CancellationToken.None);
         await emailStore.SetEmailAsync(user, email, CancellationToken.None);
-        
-        user.AddNotification(new ApplicationUserCreatedNotification(
-            await userManager.GetUserIdAsync(user),
-            userName,
-            email
-        ));
         
         var result = await userManager.CreateAsync(user, registration.Password);
 
         if (!result.Succeeded)
-        {
             return CreateValidationProblem(result);
-        }
 
         await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email);
         return TypedResults.Ok();

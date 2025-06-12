@@ -1,11 +1,10 @@
-using System.Security.Claims;
-using ServerGame.Application.Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using ServerGame.Application.Common.Models;
 using ServerGame.Application.Users.Services;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Identity;
+namespace ServerGame.Infrastructure.Database.Application.Identity;
 
 public class IdentityService : IIdentityService
 {

@@ -4,19 +4,19 @@ using ServerGame.Application.Common.Interfaces;
 using ServerGame.Application.Users.Notifications;
 using ServerGame.Domain.Entities.Accounts;
 
-namespace ServerGame.Infrastructure.Identity.Entities;
+namespace ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 public class ApplicationUser : IdentityUser, IHasNotifications
 {
     /// <summary>
     /// Referência para o agregado de domínio Account associado
     /// </summary>
-    public long? AccountId { get; init; }
+    public virtual long? AccountId { get; set; }
     
     /// <summary>
     /// Propriedade de navegação para o Account (optional)
     /// </summary>
-    public Account? Account { get; init; }
+    public virtual Account? Account { get; set; }
 
     /// <summary>
     /// Eventos de domínio para este usuário
@@ -24,8 +24,6 @@ public class ApplicationUser : IdentityUser, IHasNotifications
     private readonly List<INotification> _notifications = [];
     public IReadOnlyCollection<INotification> PendingNotifications => _notifications.AsReadOnly();
 
-    public ApplicationUser() : base() { }
-    
     // Método de fábrica para criar e adicionar notificação
     public static ApplicationUser Create(string userName, string email)
     {

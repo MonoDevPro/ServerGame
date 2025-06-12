@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Database.Identity;
+namespace ServerGame.Infrastructure.Database.Application.Configurations;
 
 /// <summary>
 /// Configuração do Entity Framework para ApplicationUser
@@ -11,18 +12,15 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        // Configurar relacionamento com Account (opcional)
-        builder.HasOne(u => u.Account)
-            .WithOne()
-            .HasForeignKey<ApplicationUser>(u => u.AccountId)
-            .IsRequired(false)
-            .OnDelete(DeleteBehavior.SetNull);
+        // 1) Ignora completamente a propriedade de navegação
+        builder.Ignore(u => u.Account);
 
-        // Configurar AccountId
+        // 2) Mapeia só a FK como coluna opcional
         builder.Property(u => u.AccountId)
+            .HasColumnName("AccountId")
             .IsRequired(false);
 
-        // Ignorar eventos de domínio (não persistir no banco)
+        // 3) Ignora eventos de domínio
         builder.Ignore(u => u.PendingNotifications);
     }
 }

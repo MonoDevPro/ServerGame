@@ -1,7 +1,7 @@
-﻿using ServerGame.Application.Common.Models;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
+using ServerGame.Application.Common.Models;
 
-namespace ServerGame.Infrastructure.Identity;
+namespace ServerGame.Infrastructure.Database.Application.Identity;
 
 public static class IdentityResultExtensions
 {

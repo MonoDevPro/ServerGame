@@ -1,9 +1,9 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Identity;
+namespace ServerGame.Infrastructure.Database.Application.Identity;
 
 public class ClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser>
 {

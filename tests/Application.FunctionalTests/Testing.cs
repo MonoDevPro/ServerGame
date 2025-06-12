@@ -1,11 +1,11 @@
 ﻿using ServerGame.Domain.Constants;
-using ServerGame.Infrastructure.Data;
-using ServerGame.Infrastructure.Identity;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using ServerGame.Infrastructure.Data.Context;
+using ServerGame.Infrastructure.Database.Application;
+using ServerGame.Infrastructure.Database.Application.Identity;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Application.FunctionalTests;
 

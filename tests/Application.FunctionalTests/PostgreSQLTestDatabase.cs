@@ -1,11 +1,10 @@
 ﻿using System.Data.Common;
-using ServerGame.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
 using Respawn;
-using ServerGame.Infrastructure.Data.Context;
+using ServerGame.Infrastructure.Database.Application;
 
 namespace ServerGame.Application.FunctionalTests;
 

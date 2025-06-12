@@ -4,13 +4,15 @@ using ServerGame.Domain.Entities;
 using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Infrastructure.Database.Domain.Accounts;
+namespace ServerGame.Infrastructure.Database.Domain.Configurations;
 
 public class AccountConfiguration : IEntityTypeConfiguration<Account>
 {
     public void Configure(EntityTypeBuilder<Account> builder)
     {
         builder.HasBaseType<BaseAuditableEntity>();
+        
+        builder.ToTable("Accounts");
         
         // Configurações de propriedades
         builder.Property(a => a.IsActive);

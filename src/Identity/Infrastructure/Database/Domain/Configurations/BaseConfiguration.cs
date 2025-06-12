@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using ServerGame.Domain.Entities;
 
-namespace ServerGame.Infrastructure.Database.Domain;
+namespace ServerGame.Infrastructure.Database.Domain.Configurations;
 
 public class BaseDomainConfiguration : IEntityTypeConfiguration<BaseEntity>,  IEntityTypeConfiguration<BaseAuditableEntity>
 {

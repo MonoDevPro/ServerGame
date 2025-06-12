@@ -1,12 +1,28 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Design;
 using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Infrastructure.Identity.Entities;
 
 namespace ServerGame.Infrastructure.Database.Domain;
 
-public class DomainDbContext : IdentityDbContext<ApplicationUser>
+public class DomainDbContextFactory : IDesignTimeDbContextFactory<DomainDbContext>
+{
+    public DomainDbContext CreateDbContext(string[] args)
+    {
+        var options = new DbContextOptionsBuilder<DomainDbContext>()
+            .UseNpgsql("Host=localhost;Port=37927;Username=postgres;Password=devpassword;Database=serverdb", npg =>
+            {
+                npg.MigrationsAssembly(typeof(DomainDbContext).Assembly.FullName);
+            })
+            .Options;
+
+        return new DomainDbContext(options);
+    }
+}
+
+
+public class DomainDbContext : DbContext
 {
     public DomainDbContext(DbContextOptions<DomainDbContext> options) : base(options) { }
 
@@ -15,6 +31,12 @@ public class DomainDbContext : IdentityDbContext<ApplicationUser>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        
+        var thisAssembly = Assembly.GetExecutingAssembly();
+        builder.ApplyConfigurationsFromAssembly(thisAssembly, type =>
+            // só as classes que moram na pasta/namespace de domínio
+            type.Namespace is not null
+            && type.Namespace.StartsWith("ServerGame.Infrastructure.Database.Domain.Configurations")
+        );
     }
 }

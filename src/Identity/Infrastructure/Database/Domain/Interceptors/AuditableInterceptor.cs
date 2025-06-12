@@ -3,29 +3,21 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Entities;
+using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
-namespace ServerGame.Infrastructure.Database.Common.Interceptors;
+namespace ServerGame.Infrastructure.Database.Domain.Interceptors;
 
-public class UnityOfWorkAuditableInterceptor : IPreSaveInterceptor
+public class AuditableInterceptor(
+    IUser user,
+    TimeProvider dateTime) : IPreSaveInterceptor
 {
-    private readonly IUser _user;
-    private readonly TimeProvider _dateTime;
-
-    public UnityOfWorkAuditableInterceptor(
-        IUser user,
-        TimeProvider dateTime)
+    public Task PreSaveChangesAsync(DbContextEventData contextData, CancellationToken cancellationToken = default)
     {
-        _user = user;
-        _dateTime = dateTime;
-    }
-
-    public Task PreSaveChangesAsync(DbContext context)
-    {
-        UpdateEntities(context);
+        UpdateEntities(contextData.Context);
         return Task.CompletedTask;
     }
     
-    public void UpdateEntities(DbContext? context)
+    private void UpdateEntities(DbContext? context)
     {
         if (context == null) return;
 
@@ -33,13 +25,13 @@ public class UnityOfWorkAuditableInterceptor : IPreSaveInterceptor
         {
             if (entry.State is EntityState.Added or EntityState.Modified || entry.HasChangedOwnedEntities())
             {
-                var utcNow = _dateTime.GetUtcNow();
+                var utcNow = dateTime.GetUtcNow();
                 if (entry.State == EntityState.Added)
                 {
-                    entry.Entity.CreatedBy = _user.Id;
+                    entry.Entity.CreatedBy = user.Id;
                     entry.Entity.Created = utcNow;
                 } 
-                entry.Entity.LastModifiedBy = _user.Id;
+                entry.Entity.LastModifiedBy = user.Id;
                 entry.Entity.LastModified = utcNow;
             }
         }

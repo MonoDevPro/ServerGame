@@ -18,7 +18,7 @@ public class Account : BaseAuditableEntity
     public LoginInfo? LastLoginInfo { get; private set; }
 
     // Permissões
-    private readonly List<Role> _roles = new();
+    private readonly List<Role> _roles = [];
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
 
     // Construtor para criação de nova conta

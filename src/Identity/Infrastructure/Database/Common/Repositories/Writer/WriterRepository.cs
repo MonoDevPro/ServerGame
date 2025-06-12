@@ -2,8 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 
-namespace ServerGame.Infrastructure.Data.Repositories.Writer;
+namespace ServerGame.Infrastructure.Database.Common.Repositories.Writer;
 
+//[Obsolete("Use unitOfWork pattern instead of this repository")]
 internal class WriterRepository<TEntity> : IWriterRepository<TEntity>
     where TEntity : class
 {

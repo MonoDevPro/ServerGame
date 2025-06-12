@@ -6,13 +6,13 @@ using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Models;
 
-namespace ServerGame.Infrastructure.Data.Repositories.Reader;
+namespace ServerGame.Infrastructure.Database.Common.Repositories.Reader;
 
 internal class ReaderRepository<TEntity> : IReaderRepository<TEntity>
     where TEntity : class
 {
     private readonly IQueryable<TEntity> _context;
-    public ReaderRepository(IQueryable<TEntity> context) => _context = context;
+    public ReaderRepository(DbContext context) => _context = context.Set<TEntity>();
 
     public async Task<bool> ExistsAsync(
         Expression<Func<TEntity, bool>> predicate, 

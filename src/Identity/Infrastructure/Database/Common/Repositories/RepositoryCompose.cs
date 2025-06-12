@@ -1,6 +1,6 @@
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 
-namespace ServerGame.Infrastructure.Data.Repositories;
+namespace ServerGame.Infrastructure.Database.Common.Repositories;
 
 internal class RepositoryCompose<TEntity> : IRepositoryCompose<TEntity>
     where TEntity : class

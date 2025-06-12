@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging;
+using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
-namespace ServerGame.Infrastructure.Database.Common.Interceptors;
+namespace ServerGame.Infrastructure.Database.Common.Interceptors.Services;
 
-public class UnitOfWorkInterceptor(ILogger<UnitOfWorkInterceptor> logger) : SaveChangesInterceptor
+public class DatabaseInterceptor(ILogger<DatabaseInterceptor> logger) : SaveChangesInterceptor
 {
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
@@ -20,7 +21,7 @@ public class UnitOfWorkInterceptor(ILogger<UnitOfWorkInterceptor> logger) : Save
         {
             try
             {
-                await preSaveInterceptor.PreSaveChangesAsync(eventData.Context);
+                await preSaveInterceptor.PreSaveChangesAsync(eventData, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -46,7 +47,7 @@ public class UnitOfWorkInterceptor(ILogger<UnitOfWorkInterceptor> logger) : Save
         {
             try
             {
-                await postSaveInterceptor.PostSaveChangesAsync(eventData.Context);
+                await postSaveInterceptor.PostSaveChangesAsync(eventData, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -54,7 +55,7 @@ public class UnitOfWorkInterceptor(ILogger<UnitOfWorkInterceptor> logger) : Save
                 throw;
             }
         }
-            
+        
         return eventData.EntitiesSavedCount;
     }
 }

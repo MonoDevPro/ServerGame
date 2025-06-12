@@ -2,13 +2,14 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
 using ServerGame.Domain.Events;
-using ServerGame.Infrastructure.Data.Events;
 
-namespace ServerGame.Infrastructure.Database.Domain.Dispatchers;
+namespace ServerGame.Infrastructure.Database.Common.Dispatchers;
 
-public class EventDispatcher(IMediator mediator, ILogger<NotificationDispatcher> logger) : IEventDispatcher<IDomainEvent>
+public class EventDispatcher(
+    ILogger<EventDispatcher> logger
+    ) : IEventDispatcher<IDomainEvent>
 {
-    public virtual async Task DispatchAsync(IEnumerable<IDomainEvent> events, CancellationToken cancellationToken = default)
+    public virtual Task DispatchAsync(IEnumerable<IDomainEvent> events, CancellationToken cancellationToken = default)
     {
         var exceptions = new List<Exception>();
 
@@ -17,7 +18,6 @@ public class EventDispatcher(IMediator mediator, ILogger<NotificationDispatcher>
             try
             {
                 logger.LogDebug("Dispatching event: {EventType}", @event.GetType().Name);
-                await mediator.Publish(@event, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -27,8 +27,8 @@ public class EventDispatcher(IMediator mediator, ILogger<NotificationDispatcher>
         }
 
         if (exceptions.Count > 0)
-        {
             throw new AggregateException("One or more events failed to dispatch", exceptions);
-        }
+        
+        return Task.CompletedTask;
     }
 }

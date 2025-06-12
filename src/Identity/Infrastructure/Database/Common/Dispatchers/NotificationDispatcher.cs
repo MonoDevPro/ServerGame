@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
 
-namespace ServerGame.Infrastructure.Data.Events;
+namespace ServerGame.Infrastructure.Database.Common.Dispatchers;
 
 public class NotificationDispatcher(IMediator mediator, ILogger<NotificationDispatcher> logger) : INotificationDispatcher<INotification>
 {
@@ -14,19 +14,19 @@ public class NotificationDispatcher(IMediator mediator, ILogger<NotificationDisp
         {
             try
             {
-                logger.LogDebug("Dispatching event: {EventType}", @event.GetType().Name);
+                logger.LogDebug("Dispatching notification: {EventType}", @event.GetType().Name);
                 await mediator.Publish(@event, cancellationToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Failed to dispatch event: {EventType}", @event.GetType().Name);
+                logger.LogError(ex, "Failed to dispatch notification: {EventType}", @event.GetType().Name);
                 exceptions.Add(ex);
             }
         }
 
         if (exceptions.Count > 0)
         {
-            throw new AggregateException("One or more events failed to dispatch", exceptions);
+            throw new AggregateException("One or more notification failed to dispatch", exceptions);
         }
     }
 }

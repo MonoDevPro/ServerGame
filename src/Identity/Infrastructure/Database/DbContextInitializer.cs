@@ -1,16 +1,14 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using ServerGame.Domain.Constants;
-using ServerGame.Domain.Entities;
-using ServerGame.Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServerGame.Application.Common.Interfaces.Database;
-using ServerGame.Infrastructure.Data.Context;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Domain.Constants;
+using ServerGame.Infrastructure.Database.Application;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Data;
+namespace ServerGame.Infrastructure.Database;
 
 public static class InitialiserExtensions
 {

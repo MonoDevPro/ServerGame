@@ -1,28 +1,27 @@
-using Calabonga.UnitOfWork;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
 using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.Events;
-using ServerGame.Infrastructure.Data;
-using ServerGame.Infrastructure.Data.Context;
-using ServerGame.Infrastructure.Data.Events;
-using ServerGame.Infrastructure.Data.Repositories;
-using ServerGame.Infrastructure.Data.Repositories.Reader;
-using ServerGame.Infrastructure.Data.Repositories.Writer;
-using ServerGame.Infrastructure.Database.Common;
-using ServerGame.Infrastructure.Database.Common.Interceptors;
+using ServerGame.Infrastructure.Database.Application;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
+using ServerGame.Infrastructure.Database.Common.Dispatchers;
+using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
+using ServerGame.Infrastructure.Database.Common.Interceptors.Services;
+using ServerGame.Infrastructure.Database.Common.Repositories;
+using ServerGame.Infrastructure.Database.Common.Repositories.Reader;
+using ServerGame.Infrastructure.Database.Common.Repositories.Writer;
 using ServerGame.Infrastructure.Database.Domain;
-using ServerGame.Infrastructure.Database.Domain.Dispatchers;
 using ServerGame.Infrastructure.Database.Domain.Interceptors;
-using ServerGame.Infrastructure.Identity.Entities;
 
 namespace ServerGame.Infrastructure.Database;
 
@@ -30,172 +29,97 @@ public static class DatabaseServicesExtension
 {
     
     public static IHostApplicationBuilder ConfigureDatabaseServices(
-        this IHostApplicationBuilder hostBuilder,
-        string connectionName,
-        Action<NpgsqlDbContextOptionsBuilder>? postgreDbContextSettings = null,
-        Action<DbContextOptionsBuilder>? optionsBuilder = null)
+        this IHostApplicationBuilder hostBuilder)
     {
+        var connectionName = "serverdb";
+        
+        hostBuilder.Services.AddScoped<IDatabaseSeeding, DbContextInitializer>();
+        
         hostBuilder.Services.AddScoped<INotificationDispatcher<INotification>, NotificationDispatcher>();
         hostBuilder.Services.AddScoped<IEventDispatcher<IDomainEvent>, EventDispatcher>();
-        
-        // Vai ser utilizado no UNIT OF WORK do Calabonga
-        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, UnitOfWorkInterceptor>();
-        
-        // Registra interceptors de pré e pós salvamento adaptado para o Calabonga Unit of Work
-        hostBuilder.Services.AddScoped<IEnumerable<IPreSaveInterceptor>>(sp 
-            => sp.GetServices<IPreSaveInterceptor>());
-        hostBuilder.Services.AddScoped<IEnumerable<IPostSaveInterceptor>>(sp 
-            => sp.GetServices<IPostSaveInterceptor>());
-        
-        // Add interceptor de pre e pós salvamento
-        // Auditable interceptor
-        hostBuilder.Services.AddScoped<IPreSaveInterceptor, UnityOfWorkAuditableInterceptor>();
-        // Post events and notifications interceptors
-        hostBuilder.Services.AddScoped<EntityEventDispatcherInterceptor>();
-        hostBuilder.Services.AddScoped<IPreSaveInterceptor>(sp => sp.GetRequiredService<EntityEventDispatcherInterceptor>());
-        hostBuilder.Services.AddScoped<IPostSaveInterceptor>(sp => sp.GetRequiredService<EntityEventDispatcherInterceptor>());
+        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DatabaseInterceptor>();
+        hostBuilder.Services.TryAddScoped<IPreSaveInterceptor, AuditableInterceptor>();
+        hostBuilder.Services.TryAddEnumerable(
+            ServiceDescriptor.Scoped<IPreSaveInterceptor, EntityEventDispatcherInterceptor>());
+        hostBuilder.Services.TryAddEnumerable(
+            ServiceDescriptor.Scoped<IPostSaveInterceptor, EntityEventDispatcherInterceptor>());
 
-        hostBuilder.Services.AddUnitOfWork<ApplicationDbContext, DomainDbContext>();
-        
-        // Configura o DbContext e os interceptors
-        ConfigureDatabaseServicesWithAction<CommonDbContext>(hostBuilder, connectionName, reg =>
+        // Identity (ApplicationDbContext) ─ migrações em Assembly: IdentityMigrations
+        hostBuilder.Services.AddDbContext<ApplicationDbContext>((sp, opt) =>
         {
-            reg.AddEntity<Account>();
-            reg.AddEntity<ApplicationUser>();
-        }, opt =>
-        {
-            opt.MigrationsAssembly(typeof(CommonDbContext).Assembly);
-        }, 
-            optionsBuilder);
-
-        ConfigureDatabaseServicesWithAction<ApplicationDbContext>(hostBuilder, connectionName, reg =>
+            var cs = sp.GetRequiredService<IConfiguration>()
+                       .GetConnectionString(connectionName);
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.UseNpgsql(cs, npg =>
             {
-                reg.AddEntity<ApplicationUser>();
-            },
-            postgreDbContextSettings, optionsBuilder);
-        
-        ConfigureDatabaseServicesWithAction<DomainDbContext>(hostBuilder, connectionName, reg =>
+                npg.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
+                npg.EnableRetryOnFailure(3);
+            });
+        });
+
+        // Domain (DomainDbContext) ─ migrações em Assembly: DomainMigrations
+        hostBuilder.Services.AddDbContext<DomainDbContext>((sp, opt) =>
         {
-            reg.AddEntity<Account>();
-        }, 
-            postgreDbContextSettings, optionsBuilder);
+            var cs = sp.GetRequiredService<IConfiguration>()
+                .GetConnectionString(connectionName);
+            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.UseNpgsql(cs, npg =>
+            {
+                npg.MigrationsAssembly(typeof(DomainDbContext).Assembly.FullName);
+                npg.EnableRetryOnFailure(3);
+            });
+        });
+        
+        hostBuilder.EnrichNpgsqlDbContext<DomainDbContext>();
+        hostBuilder.EnrichNpgsqlDbContext<ApplicationDbContext>();
+
+        // Registrar repositórios de cada DbContext
+        RegisterRepositoriesFor<DomainDbContext>(hostBuilder,typeof(Account) /* entidades de domínio */);
+        RegisterRepositoriesFor<ApplicationDbContext>(hostBuilder, typeof(ApplicationUser) /* entidades de identity */);
         
         return hostBuilder;
     }
     
-    /// <summary>
-    /// Configura os serviços de banco de dados com suporte para múltiplas entidades usando expressões lambda
-    /// </summary>
-    /// <param name="hostBuilder">Coleção de serviços</param>
-    /// <param name="connectionName">Nome da string de conexão</param>
-    /// <param name="entityConfigurator">Configurador de entidades</param>
-    /// <param name="postgreDbContextSettings">Configurações do provedor PostgreSQL</param>
-    /// <param name="optionsBuilder">Configurações adicionais do contexto</param>
-    private static IHostApplicationBuilder ConfigureDatabaseServicesWithAction<TContext>(
-        this IHostApplicationBuilder hostBuilder,
-        string connectionName,
-        Action<IEntityTypeRegistrar<TContext>> entityConfigurator,
-        Action<NpgsqlDbContextOptionsBuilder>? postgreDbContextSettings = null,
-        Action<DbContextOptionsBuilder>? optionsBuilder = null)
+    private static void RegisterRepositoriesFor<TContext>(
+        IHostApplicationBuilder hostBuilder,
+        params Type[] entityTypes)
         where TContext : DbContext
     {
-        // Configura o DbContext e os interceptors
-        ConfigureDbContext<TContext>(hostBuilder, connectionName, postgreDbContextSettings, optionsBuilder);
-        
-        // Usa o registrador para configurar as entidades
-        var registrar = new EntityTypeRegistrar<TContext>(hostBuilder);
-        entityConfigurator(registrar);
-        
-        return hostBuilder;
-    }
-
-    /// <summary>
-    /// Interface para registro de entidades
-    /// </summary>
-    public interface IEntityTypeRegistrar<TContext> where TContext : DbContext
-    {
-        /// <summary>
-        /// Registra um tipo de entidade para uso com repositórios
-        /// </summary>
-        IEntityTypeRegistrar<TContext> AddEntity<TEntity>() where TEntity : class;
-    }
-
-    /// <summary>
-    /// Implementação do registrador de entidades
-    /// </summary>
-    private class EntityTypeRegistrar<TContext> : IEntityTypeRegistrar<TContext> where TContext : DbContext
-    {
-        private readonly IHostApplicationBuilder _hostBuilder;
-
-        public EntityTypeRegistrar(IHostApplicationBuilder hostBuilder)
+        foreach (var et in entityTypes)
         {
-            _hostBuilder = hostBuilder;
+            // writer
+            hostBuilder.Services.AddScoped(
+                typeof(IWriterRepository<>).MakeGenericType(et),
+                sp =>
+                {
+                    var ctx = sp.GetRequiredService<TContext>();
+                    var repoType = typeof(WriterRepository<>).MakeGenericType(et);
+                    var instance = Activator.CreateInstance(repoType, ctx, sp.GetRequiredService<ILoggerFactory>().CreateLogger(repoType));
+                    return Guard.Against.Null(instance);
+                });
+            // reader
+            hostBuilder.Services.AddScoped(
+                typeof(IReaderRepository<>).MakeGenericType(et),
+                sp =>
+                {
+                    var ctx = sp.GetRequiredService<TContext>();
+                    var repoType = typeof(ReaderRepository<>).MakeGenericType(et);
+                    var instance = Activator.CreateInstance(repoType, ctx);
+                    return Guard.Against.Null(instance);
+                });
+            // compose
+            hostBuilder.Services.AddScoped(
+                typeof(IRepositoryCompose<>).MakeGenericType(et),
+                sp =>
+                {
+                    var writer = sp.GetRequiredService(
+                        typeof(IWriterRepository<>).MakeGenericType(et));
+                    var reader = sp.GetRequiredService(
+                        typeof(IReaderRepository<>).MakeGenericType(et));
+                    var repoType = typeof(RepositoryCompose<>).MakeGenericType(et);
+                    var instance = Activator.CreateInstance(repoType, writer, reader);
+                    return Guard.Against.Null(instance);
+                });
         }
-
-        public IEntityTypeRegistrar<TContext> AddEntity<TEntity>() where TEntity : class
-        {
-            RegisterEntityRepositories<TEntity, TContext>(_hostBuilder);
-            return this;
-        }
-    }
-
-    /// <summary>
-    /// Registra os repositórios para um tipo de entidade específico
-    /// </summary>
-    private static void RegisterEntityRepositories<TEntity, TContext>(IHostApplicationBuilder hostBuilder)
-        where TEntity : class
-        where TContext : DbContext
-    {
-        // Adiciona o repositório de escrita
-        hostBuilder.Services.AddScoped<IWriterRepository<TEntity>>(opt =>
-        {
-            var dbContext = opt.GetRequiredService<TContext>();
-            return new WriterRepository<TEntity>(dbContext, opt.GetRequiredService<ILogger<WriterRepository<TEntity>>>());
-        });
-        
-        // Adiciona o repositório de leitura
-        hostBuilder.Services.AddScoped<IReaderRepository<TEntity>>(opt =>
-        {
-            var dbContext = opt.GetRequiredService<TContext>();
-            return new ReaderRepository<TEntity>(dbContext.Set<TEntity>().AsQueryable());
-        });
-        
-        // Registra o compose de repositórios
-        hostBuilder.Services.AddScoped<IRepositoryCompose<TEntity>>(opt =>
-        {
-            var writerRepo = opt.GetRequiredService<IWriterRepository<TEntity>>();
-            var readerRepo = opt.GetRequiredService<IReaderRepository<TEntity>>();
-            return new RepositoryCompose<TEntity>(writerRepo, readerRepo);
-        });
-    }
-
-    /// <summary>
-    /// Configura o DbContext e os interceptors
-    /// </summary>
-    private static void ConfigureDbContext<TContext>(
-        IHostApplicationBuilder hostBuilder, 
-        string connectionName,
-        Action<NpgsqlDbContextOptionsBuilder>? postgreDbContextSettings,
-        Action<DbContextOptionsBuilder>? optionsBuilder)
-        where TContext : DbContext
-    {
-        hostBuilder.Services.AddDbContext<TContext>((sp, options) =>
-        {
-            var connectionString = hostBuilder.Configuration.GetConnectionString(connectionName);
-
-            Guard.Against.Null(connectionString, message: "Connection string not found.");
-
-            // Use the connection string named "serverdb" (will be injected by Aspire)
-            options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
-
-            options.UseNpgsql(connectionString, postgreDbContextSettings)
-                .AddAsyncSeeding(sp);
-
-            optionsBuilder?.Invoke(options);
-        });
-        
-        // Register the DbContext as a design-time factory
-        hostBuilder.EnrichNpgsqlDbContext<TContext>();
-        
     }
 }

@@ -1,18 +1,12 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Database;
-using ServerGame.Application.Common.Interfaces.Events;
 using ServerGame.Application.Users.Services;
 using ServerGame.Domain.Constants;
-using ServerGame.Domain.Entities;
-using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Infrastructure.Data;
-using ServerGame.Infrastructure.Data.Context;
-using ServerGame.Infrastructure.Data.Events;
-using ServerGame.Infrastructure.Identity;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Infrastructure.Database;
+using ServerGame.Infrastructure.Database.Application;
+using ServerGame.Infrastructure.Database.Application.Identity;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Infrastructure;
 
@@ -20,18 +14,7 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        builder.Services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
-        
-        builder.Services.AddScoped<IDatabaseSeeding, DbContextInitializer>();
-
-        builder.ConfigureDatabaseServicesWithAction<ApplicationDbContext>(
-            connectionName: "serverdb",
-            entityConfigurator: a => a.AddEntity<Account>(),
-            optionsBuilder: null,
-            postgreDbContextSettings: opt =>
-            {
-                opt.EnableRetryOnFailure(3);
-            });
+        builder.ConfigureDatabaseServices();
 
         builder.Services.AddAuthentication()
             .AddBearerToken(IdentityConstants.BearerScheme);

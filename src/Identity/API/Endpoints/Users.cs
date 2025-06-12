@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using ServerGame.Api.Infrastructure;
 using ServerGame.Application.Users.Commands;
 using ServerGame.Application.Users.Notifications;
-using ServerGame.Infrastructure.Identity.Entities;
+using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Api.Endpoints;
 

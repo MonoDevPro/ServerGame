@@ -1,7 +1,7 @@
 using ServerGame.Api;
 using ServerGame.Api.Infrastructure;
 using ServerGame.Infrastructure;
-using ServerGame.Infrastructure.Data;
+using ServerGame.Infrastructure.Database;
 using ServerGame.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);

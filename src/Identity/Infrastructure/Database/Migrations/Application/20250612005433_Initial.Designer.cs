@@ -5,14 +5,14 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using ServerGame.Infrastructure.Data.Context;
+using ServerGame.Infrastructure.Database.Application;
 
 #nullable disable
 
-namespace ServerGame.Infrastructure.Data.Migrations
+namespace ServerGame.Infrastructure.Database.Migrations.Application
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250608001240_Initial")]
+    [Migration("20250612005433_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,24 +24,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.HasSequence("BaseEntitySequence");
-
-            modelBuilder.Entity("GameServer.Shared.Domain.Entities.BaseEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasDefaultValueSql("nextval('\"BaseEntitySequence\"')");
-
-                    NpgsqlPropertyBuilderExtensions.UseSequence(b.Property<long>("Id"));
-
-                    b.HasKey("Id");
-
-                    b.ToTable((string)null);
-
-                    b.UseTpcMappingStrategy();
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -175,7 +157,7 @@ namespace ServerGame.Infrastructure.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", b =>
+            modelBuilder.Entity("ServerGame.Infrastructure.Database.Application.Identity.Entities.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -184,7 +166,8 @@ namespace ServerGame.Infrastructure.Data.Migrations
                         .HasColumnType("integer");
 
                     b.Property<long?>("AccountId")
-                        .HasColumnType("bigint");
+                        .HasColumnType("bigint")
+                        .HasColumnName("AccountId");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -232,9 +215,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("AccountId")
-                        .IsUnique();
-
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -243,55 +223,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
                         .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers", (string)null);
-                });
-
-            modelBuilder.Entity("GameServer.Shared.Domain.Entities.BaseAuditableEntity", b =>
-                {
-                    b.HasBaseType("GameServer.Shared.Domain.Entities.BaseEntity");
-
-                    b.Property<DateTimeOffset>("Created")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.Property<DateTimeOffset>("LastModified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("LastModifiedBy")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
-                    b.ToTable((string)null);
-                });
-
-            modelBuilder.Entity("ServerGame.Domain.Entities.Account", b =>
-                {
-                    b.HasBaseType("GameServer.Shared.Domain.Entities.BaseAuditableEntity");
-
-                    b.Property<int>("AccountType")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("Email");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("LastLoginInfo")
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("LastLoginInfo");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("Username");
-
-                    b.ToTable("Accounts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -305,7 +236,7 @@ namespace ServerGame.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", null)
+                    b.HasOne("ServerGame.Infrastructure.Database.Application.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -314,7 +245,7 @@ namespace ServerGame.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", null)
+                    b.HasOne("ServerGame.Infrastructure.Database.Application.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -329,7 +260,7 @@ namespace ServerGame.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", null)
+                    b.HasOne("ServerGame.Infrastructure.Database.Application.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -338,76 +269,11 @@ namespace ServerGame.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", null)
+                    b.HasOne("ServerGame.Infrastructure.Database.Application.Identity.Entities.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", b =>
-                {
-                    b.HasOne("ServerGame.Domain.Entities.Account", "Account")
-                        .WithOne()
-                        .HasForeignKey("ServerGame.Infrastructure.Identity.Entities.ApplicationUser", "AccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("ServerGame.Domain.Entities.Account", b =>
-                {
-                    b.OwnsOne("ServerGame.Domain.ValueObjects.BanInfo", "BanInfo", b1 =>
-                        {
-                            b1.Property<long>("AccountId")
-                                .HasColumnType("bigint");
-
-                            b1.Property<long?>("BannedById")
-                                .HasColumnType("bigint")
-                                .HasColumnName("BannedById");
-
-                            b1.Property<DateTime?>("ExpiresAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("BanExpiresAt");
-
-                            b1.Property<string>("Reason")
-                                .HasMaxLength(500)
-                                .HasColumnType("character varying(500)")
-                                .HasColumnName("BanReason");
-
-                            b1.Property<string>("Status")
-                                .IsRequired()
-                                .HasColumnType("text")
-                                .HasColumnName("BanStatus");
-
-                            b1.HasKey("AccountId");
-
-                            b1.ToTable("Accounts");
-
-                            b1.WithOwner()
-                                .HasForeignKey("AccountId");
-                        });
-
-                    b.OwnsMany("ServerGame.Domain.ValueObjects.Role", "Roles", b1 =>
-                        {
-                            b1.Property<long>("AccountId")
-                                .HasColumnType("bigint");
-
-                            b1.Property<string>("Value")
-                                .HasColumnType("text")
-                                .HasColumnName("Role");
-
-                            b1.HasKey("AccountId", "Value");
-
-                            b1.ToTable("AccountRoles", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("AccountId");
-                        });
-
-                    b.Navigation("BanInfo");
-
-                    b.Navigation("Roles");
                 });
 #pragma warning restore 612, 618
         }

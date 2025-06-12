@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace ServerGame.Infrastructure.Data.Migrations
+namespace ServerGame.Infrastructure.Database.Migrations.Application
 {
     /// <inheritdoc />
     public partial class Initial : Migration
@@ -12,33 +12,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateSequence(
-                name: "BaseEntitySequence");
-
-            migrationBuilder.CreateTable(
-                name: "Accounts",
-                columns: table => new
-                {
-                    Id = table.Column<long>(type: "bigint", nullable: false, defaultValueSql: "nextval('\"BaseEntitySequence\"')"),
-                    Created = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    CreatedBy = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    LastModified = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    LastModifiedBy = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: true),
-                    Username = table.Column<string>(type: "text", nullable: false),
-                    Email = table.Column<string>(type: "text", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    AccountType = table.Column<int>(type: "integer", nullable: false),
-                    BanStatus = table.Column<string>(type: "text", nullable: true),
-                    BanExpiresAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    BanReason = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    BannedById = table.Column<long>(type: "bigint", nullable: true),
-                    LastLoginInfo = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Accounts", x => x.Id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -51,24 +24,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "AccountRoles",
-                columns: table => new
-                {
-                    Role = table.Column<string>(type: "text", nullable: false),
-                    AccountId = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AccountRoles", x => new { x.AccountId, x.Role });
-                    table.ForeignKey(
-                        name: "FK_AccountRoles_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -95,12 +50,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AspNetUsers_Accounts_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Accounts",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
                 });
 
             migrationBuilder.CreateTable(
@@ -241,12 +190,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
                 column: "NormalizedEmail");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AspNetUsers_AccountId",
-                table: "AspNetUsers",
-                column: "AccountId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "UserNameIndex",
                 table: "AspNetUsers",
                 column: "NormalizedUserName",
@@ -256,9 +199,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "AccountRoles");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -279,12 +219,6 @@ namespace ServerGame.Infrastructure.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
-                name: "Accounts");
-
-            migrationBuilder.DropSequence(
-                name: "BaseEntitySequence");
         }
     }
 }

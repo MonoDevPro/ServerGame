@@ -16,13 +16,12 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-    // Só em Development: inicializa bancos (migrate/ensure)
+if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("SkipNSwag") == "True")
     await app.InitialiseDatabaseAsync();
-
-// A partir daqui, nunca execute MigrateAsync() em Production ou no NSwag
-if (!app.Environment.IsDevelopment())
+else
+{
     app.UseHsts();
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -36,7 +35,6 @@ app.UseSwaggerUi(settings =>
     settings.Path = "/api";
     settings.DocumentPath = "/api/specification.json";
 });
-
 
 app.UseExceptionHandler(options => { });
 

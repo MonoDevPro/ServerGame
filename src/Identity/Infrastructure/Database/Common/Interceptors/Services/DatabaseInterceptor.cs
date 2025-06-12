@@ -1,11 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
 namespace ServerGame.Infrastructure.Database.Common.Interceptors.Services;
 
-public class DatabaseInterceptor(ILogger<DatabaseInterceptor> logger) : SaveChangesInterceptor
+public class DatabaseInterceptor(IServiceProvider provider, ILogger<DatabaseInterceptor> logger) : SaveChangesInterceptor
 {
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
@@ -15,7 +16,7 @@ public class DatabaseInterceptor(ILogger<DatabaseInterceptor> logger) : SaveChan
         if (eventData.Context == null)
             return await base.SavingChangesAsync(eventData, result, cancellationToken);
 
-        var interceptor = eventData.Context.GetService<IEnumerable<IPreSaveInterceptor>>();
+        var interceptor = provider.GetServices<IPreSaveInterceptor>();
         
         foreach (var preSaveInterceptor in interceptor)
         {
@@ -41,7 +42,7 @@ public class DatabaseInterceptor(ILogger<DatabaseInterceptor> logger) : SaveChan
         if (eventData.Context == null)
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
         
-        var interceptor = eventData.Context.GetService<IEnumerable<IPostSaveInterceptor>>();
+        var interceptor = provider.GetServices<IPostSaveInterceptor>();
         
         foreach (var postSaveInterceptor in interceptor)
         {

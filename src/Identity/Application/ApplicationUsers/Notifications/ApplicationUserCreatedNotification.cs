@@ -1,6 +1,4 @@
-using ServerGame.Application.Common.Interfaces;
-
-namespace ServerGame.Application.Users.Notifications;
+namespace ServerGame.Application.ApplicationUsers.Notifications;
 
 // Application/Common/Notifications.cs
 public record ApplicationUserCreatedNotification(

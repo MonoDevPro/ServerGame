@@ -1,7 +1,7 @@
 ﻿using ServerGame.Application.Common.Interfaces;
 using MediatR.Pipeline;
 using Microsoft.Extensions.Logging;
-using ServerGame.Application.Users.Services;
+using ServerGame.Application.ApplicationUsers.Services;
 
 namespace ServerGame.Application.Common.Behaviours;
 

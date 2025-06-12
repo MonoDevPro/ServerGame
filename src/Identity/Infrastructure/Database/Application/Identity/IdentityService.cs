@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using ServerGame.Application.ApplicationUsers.Services;
 using ServerGame.Application.Common.Models;
-using ServerGame.Application.Users.Services;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Infrastructure.Database.Application.Identity;

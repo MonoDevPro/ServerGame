@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using ServerGame.Application.Accounts.NotificationHandlers;
-using ServerGame.Application.Users.Notifications;
+using ServerGame.Application.ApplicationUsers.Notifications;
 
-namespace ServerGame.Application.Users.NotificationHandlers;
+namespace ServerGame.Application.ApplicationUsers.NotificationHandlers;
 
 public class ApplicationUserLoggedNotificationHandler : INotificationHandler<ApplicationUserLoggedNotification>
 {

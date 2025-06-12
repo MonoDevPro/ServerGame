@@ -11,6 +11,7 @@ var postgres = builder
 var serverdb = postgres.AddDatabase("serverdb", "serverdb");
 builder
     .AddProject<Projects.API>("ApiService")
+    .WithEnvironment("SkipNSwag", "True")
     .WithReference(serverdb)
     .WaitFor(serverdb);
 

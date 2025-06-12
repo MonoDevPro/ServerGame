@@ -10,9 +10,9 @@ internal class WriterRepository<TEntity> : IWriterRepository<TEntity>
 {
     private readonly DbContext _dbContext;
     private readonly DbSet<TEntity> _dbSet;
-    private readonly ILogger<WriterRepository<TEntity>> _logger;
+    private readonly ILogger _logger;
 
-    public WriterRepository(DbContext dbContext, ILogger<WriterRepository<TEntity>> logger)
+    public WriterRepository(DbContext dbContext, ILogger logger)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _dbSet = dbContext.Set<TEntity>();

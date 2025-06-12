@@ -1,13 +1,12 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Api.Infrastructure;
-using ServerGame.Application.Users.Commands;
-using ServerGame.Application.Users.Notifications;
+using ServerGame.Application.ApplicationUsers.Commands;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Api.Endpoints;
 
-public class Users : BaseIdentityEndpoints<ApplicationUser>
+public class ApplicationUsers : BaseIdentityEndpoints<ApplicationUser>
 {
     public override void Map(WebApplication app)
     {
@@ -34,7 +33,7 @@ public class Users : BaseIdentityEndpoints<ApplicationUser>
         IEmailSender<ApplicationUser> emailSender, LinkGenerator linkGenerator)
     {
         if (!userManager.SupportsUserEmail)
-            throw new NotSupportedException($"{nameof(Users)} requer um user store com suporte a e-mail.");
+            throw new NotSupportedException($"{nameof(ApplicationUsers)} requer um user store com suporte a e-mail.");
         
         // TODO: Precisamos adicionar uma validação mais robust para o nome de usuário e e-mail, como verificar se já existem usuários com esses dados.
         var userName = registration.Username.Trim();

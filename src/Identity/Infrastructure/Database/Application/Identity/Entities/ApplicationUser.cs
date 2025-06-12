@@ -1,7 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Identity;
+using ServerGame.Application.ApplicationUsers.Notifications;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Users.Notifications;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Infrastructure.Database.Application.Identity.Entities;

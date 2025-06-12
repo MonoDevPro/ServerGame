@@ -1,28 +1,20 @@
 ﻿using Microsoft.Extensions.Logging;
 using ServerGame.Application.Accounts.Commands.CreateAccount;
-using ServerGame.Application.Users.Notifications;
+using ServerGame.Application.ApplicationUsers.Notifications;
 using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace ServerGame.Application.Users.NotificationHandlers;
+namespace ServerGame.Application.ApplicationUsers.NotificationHandlers;
 
-public class ApplicationUserCreatedNotificationHandler : INotificationHandler<ApplicationUserCreatedNotification>
+public class ApplicationUserCreatedNotificationHandler(
+    IMediator mediator,
+    ILogger<ApplicationUserCreatedNotificationHandler> logger
+    ) : INotificationHandler<ApplicationUserCreatedNotification>
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<ApplicationUserCreatedNotificationHandler> _logger;
-
-    public ApplicationUserCreatedNotificationHandler(
-        IMediator mediator,
-        ILogger<ApplicationUserCreatedNotificationHandler> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     public async Task Handle(ApplicationUserCreatedNotification notification, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Processing ApplicationUserCreatedEvent for UserId {UserId} with Username {UserName} and Email {Email}",
                 notification.UserId, 
                 notification.UserName, 
@@ -34,16 +26,16 @@ public class ApplicationUserCreatedNotificationHandler : INotificationHandler<Ap
                 Email.Create(notification.Email)
             );
 
-            await _mediator.Send(command, cancellationToken);
+            await mediator.Send(command, cancellationToken);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating Account for ApplicationUser {UserId}", notification.UserId);
+            logger.LogError(ex, "Error creating Account for ApplicationUser {UserId}", notification.UserId);
             throw; // Re-throw to let the exception propagate
         }
         finally
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Finished processing ApplicationUserCreatedEvent for UserId {UserId}", 
                 notification.UserId);
         }

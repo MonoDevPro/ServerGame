@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServerGame.Application.Users.Services;
+using ServerGame.Application.ApplicationUsers.Services;
 using ServerGame.Domain.Constants;
 using ServerGame.Infrastructure.Database;
 using ServerGame.Infrastructure.Database.Application;

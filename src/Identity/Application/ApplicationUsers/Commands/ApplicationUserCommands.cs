@@ -1,4 +1,4 @@
-namespace ServerGame.Application.Users.Commands;
+namespace ServerGame.Application.ApplicationUsers.Commands;
 
 public record RegisterCommand(string Username, string Email, string Password);
 

@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
-using ServerGame.Application.Users.Commands;
-using ServerGame.Application.Users.Models;
+using ServerGame.Application.ApplicationUsers.Commands;
+using ServerGame.Application.ApplicationUsers.Models;
 
 namespace ServerGame.Api.Infrastructure;
 

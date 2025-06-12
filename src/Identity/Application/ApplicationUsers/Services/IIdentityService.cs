@@ -1,6 +1,6 @@
 ﻿using ServerGame.Application.Common.Models;
 
-namespace ServerGame.Application.Users.Services;
+namespace ServerGame.Application.ApplicationUsers.Services;
 
 public interface IIdentityService
 {

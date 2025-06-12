@@ -14,6 +14,7 @@ using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.Events;
 using ServerGame.Infrastructure.Database.Application;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
+using ServerGame.Infrastructure.Database.Application.Interceptors;
 using ServerGame.Infrastructure.Database.Common.Dispatchers;
 using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 using ServerGame.Infrastructure.Database.Common.Interceptors.Services;
@@ -37,12 +38,22 @@ public static class DatabaseServicesExtension
         
         hostBuilder.Services.AddScoped<INotificationDispatcher<INotification>, NotificationDispatcher>();
         hostBuilder.Services.AddScoped<IEventDispatcher<IDomainEvent>, EventDispatcher>();
+        
         hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DatabaseInterceptor>();
-        hostBuilder.Services.TryAddScoped<IPreSaveInterceptor, AuditableInterceptor>();
-        hostBuilder.Services.TryAddEnumerable(
-            ServiceDescriptor.Scoped<IPreSaveInterceptor, EntityEventDispatcherInterceptor>());
-        hostBuilder.Services.TryAddEnumerable(
-            ServiceDescriptor.Scoped<IPostSaveInterceptor, EntityEventDispatcherInterceptor>());
+        // Interceptores de pré e pós salvamento
+        
+        // Interceptores de auditoria
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor, AuditableInterceptor>();
+        
+        // Interceptores de eventos
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor, EntityEventDispatcherInterceptor>();
+        hostBuilder.Services.AddScoped<IPostSaveInterceptor, EntityEventDispatcherInterceptor>();
+        
+        // Interceptores de notificações
+        hostBuilder.Services.AddScoped<ApplicationNotificationInterceptor>();
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor>());
+        hostBuilder.Services.AddScoped<IPostSaveInterceptor>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor>());
+
 
         // Identity (ApplicationDbContext) ─ migrações em Assembly: IdentityMigrations
         hostBuilder.Services.AddDbContext<ApplicationDbContext>((sp, opt) =>
@@ -54,7 +65,8 @@ public static class DatabaseServicesExtension
             {
                 npg.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
                 npg.EnableRetryOnFailure(3);
-            });
+            })
+                .AddAsyncSeeding(sp);
         });
 
         // Domain (DomainDbContext) ─ migrações em Assembly: DomainMigrations
@@ -107,7 +119,7 @@ public static class DatabaseServicesExtension
                     var instance = Activator.CreateInstance(repoType, ctx);
                     return Guard.Against.Null(instance);
                 });
-            // compose
+            
             hostBuilder.Services.AddScoped(
                 typeof(IRepositoryCompose<>).MakeGenericType(et),
                 sp =>
@@ -117,6 +129,7 @@ public static class DatabaseServicesExtension
                     var reader = sp.GetRequiredService(
                         typeof(IReaderRepository<>).MakeGenericType(et));
                     var repoType = typeof(RepositoryCompose<>).MakeGenericType(et);
+                    
                     var instance = Activator.CreateInstance(repoType, writer, reader);
                     return Guard.Against.Null(instance);
                 });

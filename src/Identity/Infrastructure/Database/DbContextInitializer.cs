@@ -51,6 +51,11 @@ public class DbContextInitializer : IDatabaseSeeding
     {
         try
         {
+            if (!_context.Database.IsRelational())
+            {
+                _logger.LogWarning("The database is not relational. Skipping migration.");
+                return;
+            }
             await _context.Database.MigrateAsync();
         }
         catch (Exception ex)

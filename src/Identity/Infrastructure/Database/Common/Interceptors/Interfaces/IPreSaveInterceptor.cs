@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
-public interface IPreSaveInterceptor
+public interface IPreSaveInterceptor<TContext>
+    where TContext : DbContext
 {
     /// <summary>
     /// Intercepta a ação de salvar antes que as alterações sejam persistidas no banco de dados.

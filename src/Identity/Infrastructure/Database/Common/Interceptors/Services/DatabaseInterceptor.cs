@@ -1,22 +1,23 @@
-﻿using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Infrastructure;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
 namespace ServerGame.Infrastructure.Database.Common.Interceptors.Services;
 
-public class DatabaseInterceptor(IServiceProvider provider, ILogger<DatabaseInterceptor> logger) : SaveChangesInterceptor
+public class DatabaseInterceptor<TContext>(IServiceProvider provider, ILogger<DatabaseInterceptor<TContext>> logger) : SaveChangesInterceptor
+    where TContext : DbContext
 {
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
         DbContextEventData eventData,
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
-        if (eventData.Context == null)
+        if (eventData.Context == null || eventData.Context is not TContext)
             return await base.SavingChangesAsync(eventData, result, cancellationToken);
 
-        var interceptor = provider.GetServices<IPreSaveInterceptor>();
+        var interceptor = provider.GetServices<IPreSaveInterceptor<TContext>>();
         
         foreach (var preSaveInterceptor in interceptor)
         {
@@ -42,7 +43,7 @@ public class DatabaseInterceptor(IServiceProvider provider, ILogger<DatabaseInte
         if (eventData.Context == null)
             return await base.SavedChangesAsync(eventData, result, cancellationToken);
         
-        var interceptor = provider.GetServices<IPostSaveInterceptor>();
+        var interceptor = provider.GetServices<IPostSaveInterceptor<TContext>>();
         
         foreach (var postSaveInterceptor in interceptor)
         {

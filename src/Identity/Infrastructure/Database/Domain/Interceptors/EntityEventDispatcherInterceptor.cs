@@ -9,10 +9,12 @@ using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
 namespace ServerGame.Infrastructure.Database.Domain.Interceptors;
 
-public class EntityEventDispatcherInterceptor(
+public class EntityEventDispatcherInterceptor<TContext>(
     IEventDispatcher<IDomainEvent>? eventDispatcher, 
     INotificationDispatcher<INotification>? notificationDispatcher
-    ) : IPostSaveInterceptor, IPreSaveInterceptor
+    ): IPostSaveInterceptor<TContext>, IPreSaveInterceptor<TContext>
+    where TContext : DbContext
+    
 {
     private readonly List<IDomainEvent> _pendingEvents = [];
     private readonly List<INotification> _pendingNotifications = [];

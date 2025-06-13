@@ -3,7 +3,8 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
-public interface IPostSaveInterceptor
+public interface IPostSaveInterceptor<TContext>
+    where TContext : DbContext
 {
     /// <summary>
     /// Intercepta a ação de salvar após as alterações serem persistidas no banco de dados.

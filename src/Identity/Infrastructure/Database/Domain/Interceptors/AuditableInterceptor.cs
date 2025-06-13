@@ -7,9 +7,10 @@ using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
 namespace ServerGame.Infrastructure.Database.Domain.Interceptors;
 
-public class AuditableInterceptor(
+public class AuditableInterceptor<TContext>(
     IUser user,
-    TimeProvider dateTime) : IPreSaveInterceptor
+    TimeProvider dateTime) : IPreSaveInterceptor<TContext>
+    where TContext : DbContext
 {
     public Task PreSaveChangesAsync(DbContextEventData contextData, CancellationToken cancellationToken = default)
     {

@@ -10,9 +10,10 @@ using ServerGame.Infrastructure.Database.Common.Interceptors.Interfaces;
 
 namespace ServerGame.Infrastructure.Database.Application.Interceptors;
 
-public class ApplicationNotificationInterceptor(
+public class ApplicationNotificationInterceptor<TContext>(
     INotificationDispatcher<INotification>? notificationDispatcher
-    ) : IPostSaveInterceptor, IPreSaveInterceptor
+    ) : IPostSaveInterceptor<TContext>, IPreSaveInterceptor<TContext>
+    where TContext : DbContext
 {
     private readonly List<INotification> _pendingNotifications = [];
     

@@ -3,10 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using ServerGame.Application.Common.Adapters;
 using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
@@ -28,7 +27,6 @@ namespace ServerGame.Infrastructure.Database;
 
 public static class DatabaseServicesExtension
 {
-    
     public static IHostApplicationBuilder ConfigureDatabaseServices(
         this IHostApplicationBuilder hostBuilder)
     {
@@ -39,28 +37,32 @@ public static class DatabaseServicesExtension
         hostBuilder.Services.AddScoped<INotificationDispatcher<INotification>, NotificationDispatcher>();
         hostBuilder.Services.AddScoped<IEventDispatcher<IDomainEvent>, EventDispatcher>();
         
-        hostBuilder.Services.AddScoped<ISaveChangesInterceptor, DatabaseInterceptor>();
+        hostBuilder.Services.AddScoped<DatabaseInterceptor<ApplicationDbContext>>();
+        hostBuilder.Services.AddScoped<DatabaseInterceptor<DomainDbContext>>();
         // Interceptores de pré e pós salvamento
         
         // Interceptores de auditoria
-        hostBuilder.Services.AddScoped<IPreSaveInterceptor, AuditableInterceptor>();
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor<DomainDbContext>, AuditableInterceptor<DomainDbContext>>();
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor<ApplicationDbContext>, AuditableInterceptor<ApplicationDbContext>>();
         
         // Interceptores de eventos
-        hostBuilder.Services.AddScoped<IPreSaveInterceptor, EntityEventDispatcherInterceptor>();
-        hostBuilder.Services.AddScoped<IPostSaveInterceptor, EntityEventDispatcherInterceptor>();
+        hostBuilder.Services.AddScoped<EntityEventDispatcherInterceptor<DomainDbContext>>();
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor<DomainDbContext>>(sp => sp.GetRequiredService<EntityEventDispatcherInterceptor<DomainDbContext>>());
+        hostBuilder.Services.AddScoped<IPostSaveInterceptor<DomainDbContext>>(sp => sp.GetRequiredService<EntityEventDispatcherInterceptor<DomainDbContext>>());
         
         // Interceptores de notificações
-        hostBuilder.Services.AddScoped<ApplicationNotificationInterceptor>();
-        hostBuilder.Services.AddScoped<IPreSaveInterceptor>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor>());
-        hostBuilder.Services.AddScoped<IPostSaveInterceptor>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor>());
+        hostBuilder.Services.AddScoped<ApplicationNotificationInterceptor<ApplicationDbContext>>();
+        hostBuilder.Services.AddScoped<IPreSaveInterceptor<ApplicationDbContext>>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor<ApplicationDbContext>>());
+        hostBuilder.Services.AddScoped<IPostSaveInterceptor<ApplicationDbContext>>(sp => sp.GetRequiredService<ApplicationNotificationInterceptor<ApplicationDbContext>>());
 
 
         // Identity (ApplicationDbContext) ─ migrações em Assembly: IdentityMigrations
         hostBuilder.Services.AddDbContext<ApplicationDbContext>((sp, opt) =>
         {
+            var appUow = sp.GetRequiredService<DatabaseInterceptor<ApplicationDbContext>>();
             var cs = sp.GetRequiredService<IConfiguration>()
                        .GetConnectionString(connectionName);
-            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.AddInterceptors(appUow);
             opt.UseNpgsql(cs, npg =>
             {
                 npg.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName);
@@ -72,9 +74,10 @@ public static class DatabaseServicesExtension
         // Domain (DomainDbContext) ─ migrações em Assembly: DomainMigrations
         hostBuilder.Services.AddDbContext<DomainDbContext>((sp, opt) =>
         {
+            var appUow = sp.GetRequiredService<DatabaseInterceptor<DomainDbContext>>();
             var cs = sp.GetRequiredService<IConfiguration>()
                 .GetConnectionString(connectionName);
-            opt.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+            opt.AddInterceptors(appUow);
             opt.UseNpgsql(cs, npg =>
             {
                 npg.MigrationsAssembly(typeof(DomainDbContext).Assembly.FullName);

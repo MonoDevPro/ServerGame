@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ServerGame.Application.Accounts.Services;
 using ServerGame.Application.ApplicationUsers.Services;
 using ServerGame.Domain.Constants;
 using ServerGame.Infrastructure.Database;
 using ServerGame.Infrastructure.Database.Application;
 using ServerGame.Infrastructure.Database.Application.Identity;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
+using ServerGame.Infrastructure.Services;
 
 namespace ServerGame.Infrastructure;
 
@@ -32,6 +34,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ClaimsPrincipalFactory>();
         
         builder.Services.AddTransient<IIdentityService, IdentityService>();
+        builder.Services.AddScoped<IAccountService, AccountService>();
 
         builder.Services.AddAuthorization(options =>
         {

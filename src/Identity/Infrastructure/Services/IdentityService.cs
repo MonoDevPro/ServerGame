@@ -2,9 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Application.ApplicationUsers.Services;
 using ServerGame.Application.Common.Models;
+using ServerGame.Infrastructure.Database.Application.Identity;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
-namespace ServerGame.Infrastructure.Database.Application.Identity;
+namespace ServerGame.Infrastructure.Services;
 
 public class IdentityService : IIdentityService
 {
@@ -28,6 +29,8 @@ public class IdentityService : IIdentityService
 
         return user?.UserName;
     }
+    
+    
 
     public async Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password)
     {

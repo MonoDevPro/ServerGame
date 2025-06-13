@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using ServerGame.Application.ApplicationUsers.Notifications;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Entities.Accounts;
+using ServerGame.Domain.Rules;
 
 namespace ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
@@ -34,6 +35,31 @@ public class ApplicationUser : IdentityUser, IHasNotifications
             Guard.Against.Null(email)
         ));
         return user;
+    }
+    
+    public static bool TryCreate(
+        string userName, 
+        string email, 
+        out ApplicationUser? user,
+        out string? errorMessage)
+    {
+        user = null;
+        errorMessage = null;
+
+        if (!UsernameRule.TryValidate(userName, out var error))
+        {
+            errorMessage = error;
+            return false;
+        }
+        
+        if (!EmailRule.TryValidate(email, out error))
+        {
+            errorMessage = error;
+            return false;
+        }
+
+        user = Create(userName, email);
+        return true;
     }
 
     /// <summary>

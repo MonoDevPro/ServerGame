@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using ServerGame.Application.Common.Adapters;
+using ServerGame.Application.Accounts.Adapters;
 using ServerGame.Application.Common.Interfaces.Dispatchers;
 using ServerGame.Domain.Entities;
 using ServerGame.Domain.Events;

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using ServerGame.Application.Common.Adapters;
 using ServerGame.Application.Common.Interfaces.Database;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Interfaces.Dispatchers;

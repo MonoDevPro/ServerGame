@@ -6,23 +6,12 @@
     "version": "1.0.0"
   },
   "paths": {
-    "/api/Accounts/{usernameOrEmail}": {
+    "/api/Accounts": {
       "get": {
         "tags": [
           "Accounts"
         ],
         "operationId": "Get",
-        "parameters": [
-          {
-            "name": "usernameOrEmail",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
         "responses": {
           "200": {
             "description": "",
@@ -44,51 +33,6 @@
           }
         ]
       },
-      "delete": {
-        "tags": [
-          "Accounts"
-        ],
-        "operationId": "Delete",
-        "parameters": [
-          {
-            "name": "usernameOrEmail",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
-    },
-    "/api/Accounts": {
       "post": {
         "tags": [
           "Accounts"
@@ -168,6 +112,51 @@
           "required": true,
           "x-position": 2
         },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/Accounts/{usernameOrEmail}": {
+      "delete": {
+        "tags": [
+          "Accounts"
+        ],
+        "operationId": "Delete",
+        "parameters": [
+          {
+            "name": "usernameOrEmail",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "204": {
             "description": ""
@@ -1002,6 +991,9 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
+          "username": {
+            "type": "string"
+          },
           "email": {
             "type": "string"
           },

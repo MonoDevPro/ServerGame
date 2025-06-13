@@ -15,7 +15,7 @@ public sealed record Username : ValueObject
 
     public static bool TryCreate(string input, out Username? result)
     {
-        if (UsernameRule.IsValidUsername(input))
+        if (UsernameRule.IsValid(input))
         {
             result = new Username(input.Trim().ToLowerInvariant());
             return true;

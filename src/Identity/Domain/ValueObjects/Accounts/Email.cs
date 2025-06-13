@@ -15,7 +15,7 @@ public sealed record Email : ValueObject
 
     public static bool TryCreate(string input, out Email? result)
     {
-        if (EmailRule.IsValidEmail(input))
+        if (EmailRule.IsValid(input))
         {
             result = new Email(input.Trim().ToLowerInvariant());
             return true;

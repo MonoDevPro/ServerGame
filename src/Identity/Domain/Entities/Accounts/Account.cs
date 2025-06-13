@@ -22,18 +22,26 @@ public class Account : BaseAuditableEntity
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
 
     // Construtor para criação de nova conta
-    public Account(Username username, Email email)
+    private Account(Username username, Email email)
     {
         Username = Guard.Against.Null(username, nameof(username));
         Email = Guard.Against.Null(email, nameof(email));
         IsActive = true;
         BanInfo = BanInfo.NotBanned;
-
-        // Adiciona automaticamente a role padrão
-        _roles.Add(Role.Player);
-
-        AddDomainEvent(new AccountDomainCreatedEvent(this));
     }
+    
+    public static Account Create(Username username, Email email)
+    {
+        Guard.Against.Null(username, nameof(username));
+        Guard.Against.Null(email, nameof(email));
+        var account = new Account(username, email);
+        
+        account.AddRole(Role.Player);
+        account.AddDomainEvent(new AccountDomainCreatedEvent(account));
+        return account;
+    }
+    
+    
 
     // Status
     public bool IsStaff() => AccountType == AccountType.Staff;

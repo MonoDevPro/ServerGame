@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using ServerGame.Application.ApplicationUsers.Commands;
 using ServerGame.Application.ApplicationUsers.Models;
+using ServerGame.Domain.Rules;
 
 namespace ServerGame.Api.Infrastructure;
 
@@ -22,7 +23,6 @@ public abstract class BaseIdentityEndpoints<TUser> : EndpointGroupBase
     where TUser : class, new()
 {
     // Validador de e-mail reutilizado, conforme o código original.
-    protected static readonly EmailAddressAttribute _emailAddressAttribute = new();
 
     public override void Map(WebApplication app)
     {
@@ -46,40 +46,13 @@ public abstract class BaseIdentityEndpoints<TUser> : EndpointGroupBase
     }
 
     // POST /register
-    protected virtual async Task<Results<Ok, ValidationProblem>> Register(
+    protected abstract Task<Results<Ok, ValidationProblem>> Register(
         [FromBody] RegisterCommand registration,
         HttpContext context,
         UserManager<TUser> userManager,
         IUserStore<TUser> userStore,
         IEmailSender<TUser> emailSender,
-        LinkGenerator linkGenerator)
-    {
-        if (!userManager.SupportsUserEmail)
-        {
-            throw new NotSupportedException($"{nameof(BaseIdentityEndpoints<TUser>)} requer um user store com suporte a e-mail.");
-        }
-
-        var emailStore = (IUserEmailStore<TUser>)userStore;
-        var email = registration.Email;
-
-        if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
-        {
-            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email)));
-        }
-
-        var user = new TUser();
-        await userStore.SetUserNameAsync(user, registration.Username, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, email, CancellationToken.None);
-        var result = await userManager.CreateAsync(user, registration.Password);
-
-        if (!result.Succeeded)
-        {
-            return CreateValidationProblem(result);
-        }
-
-        await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email);
-        return TypedResults.Ok();
-    }
+        LinkGenerator linkGenerator);
 
     // POST /login
     protected virtual async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login(
@@ -270,7 +243,7 @@ public abstract class BaseIdentityEndpoints<TUser> : EndpointGroupBase
             return TypedResults.NotFound();
         }
 
-        if (!string.IsNullOrEmpty(infoCommand.NewEmail) && !_emailAddressAttribute.IsValid(infoCommand.NewEmail))
+        if (!string.IsNullOrEmpty(infoCommand.NewEmail) && !EmailRule.IsValid(infoCommand.NewEmail))
         {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoCommand.NewEmail)));
         }
@@ -427,6 +400,7 @@ public abstract class BaseIdentityEndpoints<TUser> : EndpointGroupBase
     {
         return new InfoResponse
         (
+            await userManager.GetUserNameAsync(user) ?? throw new NotSupportedException("Users must have an username."),
             await userManager.GetEmailAsync(user) ?? throw new NotSupportedException("Users must have an email."),
             await userManager.IsEmailConfirmedAsync(user)
         );

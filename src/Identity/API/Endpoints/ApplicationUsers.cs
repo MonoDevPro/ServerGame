@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Api.Infrastructure;
 using ServerGame.Application.ApplicationUsers.Commands;
+using ServerGame.Domain.Rules;
+using ServerGame.Domain.ValueObjects.Accounts;
 using ServerGame.Infrastructure.Database.Application.Identity.Entities;
 
 namespace ServerGame.Api.Endpoints;
@@ -35,28 +37,32 @@ public class ApplicationUsers : BaseIdentityEndpoints<ApplicationUser>
         if (!userManager.SupportsUserEmail)
             throw new NotSupportedException($"{nameof(ApplicationUsers)} requer um user store com suporte a e-mail.");
         
-        // TODO: Precisamos adicionar uma validação mais robust para o nome de usuário e e-mail, como verificar se já existem usuários com esses dados.
-        var userName = registration.Username.Trim();
         
-        if (string.IsNullOrEmpty(userName))
-            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidUserName(userName)));
+        var userName = registration.Username.Trim().ToLowerInvariant();
+        var email = registration.Email.Trim().ToLowerInvariant();
 
+        if (!ApplicationUser.TryCreate(
+                userName, 
+                email, out var user, 
+                out var errorMessage))
+        {
+            return CreateValidationProblem(IdentityResult.Failed(
+                new IdentityError
+                {
+                    Code = nameof(errorMessage), Description = errorMessage ?? "Erro ao criar usuário."
+                }));
+        }
+        
         var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
-        var email = registration.Email;
-
-        if (string.IsNullOrEmpty(email) || !_emailAddressAttribute.IsValid(email))
-            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email)));
-
-        var user = ApplicationUser.Create(userName, email);
-        await userStore.SetUserNameAsync(user, userName, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, email, CancellationToken.None);
+        await userStore.SetUserNameAsync(user!, userName, CancellationToken.None);
+        await emailStore.SetEmailAsync(user!, email, CancellationToken.None);
         
-        var result = await userManager.CreateAsync(user, registration.Password);
+        var result = await userManager.CreateAsync(user!, registration.Password);
 
         if (!result.Succeeded)
             return CreateValidationProblem(result);
 
-        await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email);
+        await SendConfirmationEmailAsync(user!, userManager, context, linkGenerator, emailSender, email);
         return TypedResults.Ok();
         
     }

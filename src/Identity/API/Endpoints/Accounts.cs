@@ -5,10 +5,10 @@ using ServerGame.Application.Accounts.Commands.DeleteAccount;
 using ServerGame.Application.Accounts.Commands.PurgeAccount;
 using ServerGame.Application.Accounts.Commands.UpdateAccount;
 using ServerGame.Application.Accounts.Models;
-using ServerGame.Application.Accounts.Queries.GetSingleAccount;
+using ServerGame.Application.Accounts.Queries.GetAccount;
 using ServerGame.Application.Common.Exceptions;
+using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Exceptions;
-using ServerGame.Domain.ValueObjects;
 using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Api.Endpoints;
@@ -19,21 +19,20 @@ public class Accounts : EndpointGroupBase
     {
         app.MapGroup(this)
             .RequireAuthorization()
-            .MapGet(Get, "{usernameOrEmail}")
+            .MapGet(Get)
             .MapPost(Create)
             .MapPut(Update, "{id}")
             .MapDelete(Delete, "{usernameOrEmail}")
             .MapDelete(Purge, "purge");
     }
 
-    private async Task<Results<Ok<AccountDto>, NotFound>> Get(ISender sender, string usernameOrEmail)
+    private async Task<Results<Ok<AccountDto>, NotFound>> Get(
+        ISender sender,
+        IUser user)   // ← aqui
     {
-        if (!UsernameOrEmail.TryCreate(usernameOrEmail, out var usernameOrEmailVO))
-            return TypedResults.NotFound();
-
         try
         {
-            var query = new GetSingleAccountQuery(usernameOrEmailVO!);
+            var query = new GetAccountInfoQuery();
             var result = await sender.Send(query);
             return TypedResults.Ok(result);
         }
@@ -41,7 +40,12 @@ public class Accounts : EndpointGroupBase
         {
             return TypedResults.NotFound();
         }
+        catch (DomainException)
+        {
+            return TypedResults.NotFound();
+        }
     }
+
 
     private async Task<Results<Created<string>, BadRequest<string[]>>> Create(ISender sender, CreateAccountCommand command)
     {

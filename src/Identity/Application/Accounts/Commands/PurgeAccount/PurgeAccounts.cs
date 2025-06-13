@@ -19,12 +19,12 @@ public class DeleteAccountCommandHandler : IRequestHandler<PurgeAccountCommand>
 {
     private readonly IReaderRepository<Account> _accountRepositoryReader;
     private readonly IWriterRepository<Account> _accountRepositoryWriter;
-    private readonly ILogger<CreateAccountCommandHandler> _logger;
+    private readonly ILogger<DeleteAccountCommandHandler> _logger;
 
     public DeleteAccountCommandHandler(
         IReaderRepository<Account> accountRepositoryReader,
         IWriterRepository<Account> accountRepositoryWriter,
-        ILogger<CreateAccountCommandHandler> logger
+        ILogger<DeleteAccountCommandHandler> logger
     )
     {
         _accountRepositoryReader = accountRepositoryReader;

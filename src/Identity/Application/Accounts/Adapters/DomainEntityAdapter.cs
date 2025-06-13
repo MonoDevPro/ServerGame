@@ -2,7 +2,7 @@ using ServerGame.Application.Common.Interfaces;
 using ServerGame.Domain.Entities;
 using ServerGame.Domain.Events;
 
-namespace ServerGame.Application.Common.Adapters;
+namespace ServerGame.Application.Accounts.Adapters;
 
 public class DomainEntityAdapter : IHasNotifications
 {

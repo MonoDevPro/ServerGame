@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using ServerGame.Application.Common.Adapters;
+using ServerGame.Application.Accounts.Adapters;
 using ServerGame.Domain.Events.Accounts;
 
 namespace ServerGame.Application.Accounts.NotificationHandlers;

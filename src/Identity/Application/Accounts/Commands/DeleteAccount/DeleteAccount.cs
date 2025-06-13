@@ -22,12 +22,12 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand>
 {
     private readonly IReaderRepository<Account> _accountRepositoryReader;
     private readonly IWriterRepository<Account> _accountRepositoryWriter;
-    private readonly ILogger<CreateAccountCommandHandler> _logger;
+    private readonly ILogger<DeleteAccountCommandHandler> _logger;
 
     public DeleteAccountCommandHandler(
         IReaderRepository<Account> accountRepositoryReader,
         IWriterRepository<Account> accountRepositoryWriter,
-        ILogger<CreateAccountCommandHandler> logger
+        ILogger<DeleteAccountCommandHandler> logger
     )
     {
         _accountRepositoryReader = accountRepositoryReader;
@@ -41,8 +41,8 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand>
         {
             // Buscar entidade de domínio
             var entity = await _accountRepositoryReader.QuerySingleAsync(
-                a => a.Email.Value == request.UsernameOrEmail.Value 
-                     || a.Username.Value == request.UsernameOrEmail.Value,
+                a => a.Email == request.UsernameOrEmail 
+                     || a.Username == request.UsernameOrEmail,
                 account => account,
                 trackingType: TrackingType.Tracking,
                 cancellationToken: cancellationToken

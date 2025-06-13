@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Logging;
+using ServerGame.Application.Accounts.Services;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Application.Common.Models;
 using ServerGame.Domain.Entities;
@@ -15,42 +16,30 @@ public record CreateAccountCommand(
     [Required] Email Email
 ) : IRequest;
 
-public class CreateAccountCommandHandler : IRequestHandler<CreateAccountCommand>
+public class CreateAccountCommandHandler(
+    IAccountService accountService,
+    ILogger<CreateAccountCommandHandler> logger)
+    : IRequestHandler<CreateAccountCommand>
 {
-    private readonly IWriterRepository<Account> _accountRepositoryWriter;
-    private readonly ILogger<CreateAccountCommandHandler> _logger;
-
-    public CreateAccountCommandHandler(
-        IWriterRepository<Account> accountRepositoryWriter,
-        ILogger<CreateAccountCommandHandler> logger
-    )
-    {
-        _accountRepositoryWriter = accountRepositoryWriter;
-        _logger = logger;
-    }
-    
     public async Task Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
             // Criar entidade de domínio
-            var entity = new Account(request.Username, request.Email);
+            var entity = Account.Create(request.Username, request.Email);
 
             // Salvar
-            await _accountRepositoryWriter.AddAsync(entity, cancellationToken);
-
-            var saveResult = await _accountRepositoryWriter.SaveChangesAsync(cancellationToken);
+            entity = await accountService.CreateAsync(entity, cancellationToken);
             
-            Guard.Against.Default(saveResult, nameof(saveResult), "Account could not be created in the database."
-            );
+            logger.LogInformation("Conta criada com sucesso: {Username}, {Email}", entity.Username.Value, entity.Email.Value);
         }
         catch (DomainException ex)
         {
-            _logger.LogError(ex, "Erro de domínio ao criar conta: {Message}", ex.Message);
+            logger.LogError(ex, "Erro de domínio ao criar conta: {Message}", ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Erro ao criar conta");
+            logger.LogError(ex, "Erro ao criar conta");
         }
     }
 }

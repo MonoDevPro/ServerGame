@@ -24,9 +24,10 @@ public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountComm
     
     public async Task<bool> BeExistsEntity(DeleteAccountCommand command, UsernameOrEmail usernameOrEmail, CancellationToken cancellationToken)
     {
-        return await _repository.ExistsAsync(
-            a => a.Email == usernameOrEmail || a.Username == usernameOrEmail,
-            cancellationToken
+        return await _repository.ExistsAsync(a => 
+                a.Email        == usernameOrEmail 
+                 || a.Username == usernameOrEmail,
+                                     cancellationToken
         );
     }
 }

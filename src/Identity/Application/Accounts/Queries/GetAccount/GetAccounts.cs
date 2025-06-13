@@ -1,10 +1,9 @@
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Application.Common.Interfaces.Database.Repository;
-using ServerGame.Domain.Entities;
 using ServerGame.Domain.Entities.Accounts;
 
-namespace ServerGame.Application.Accounts.Queries.GetAccountsList;
+namespace ServerGame.Application.Accounts.Queries.GetAccount;
 
 public record GetAccountsQuery(
     int PageNumber = 1,
@@ -14,20 +13,12 @@ public record GetAccountsQuery(
     string? AccountType = null
 ) : IRequest<IPagedList<AccountDto>>;
 
-public class GetAccountsQueryHandler : IRequestHandler<GetAccountsQuery, IPagedList<AccountDto>>
+public class GetAccountsQueryHandler(IReaderRepository<Account> accountRepository, IMapper mapper)
+    : IRequestHandler<GetAccountsQuery, IPagedList<AccountDto>>
 {
-    private readonly IReaderRepository<Account> _accountRepository;
-    private readonly IMapper _mapper;
-
-    public GetAccountsQueryHandler(IReaderRepository<Account> accountRepository, IMapper mapper)
-    {
-        _accountRepository = accountRepository;
-        _mapper = mapper;
-    }
-
     public async Task<IPagedList<AccountDto>> Handle(GetAccountsQuery request, CancellationToken cancellationToken)
     {
-        var accounts = await _accountRepository.QueryPagedListAsync(
+        var accounts = await accountRepository.QueryPagedListAsync(
             pageIndex: request.PageNumber,
             pageSize: request.PageSize,
             predicate: a => 
@@ -38,7 +29,7 @@ public class GetAccountsQueryHandler : IRequestHandler<GetAccountsQuery, IPagedL
                 (string.IsNullOrEmpty(request.AccountType) || 
                  a.AccountType.ToString().ToLower() == request.AccountType.ToLower()),
             orderBy: a => a.OrderByDescending(x => x.Created),
-            selector: a => _mapper.Map<AccountDto>(a),
+            selector: a => mapper.Map<AccountDto>(a),
             cancellationToken: cancellationToken
         );
 

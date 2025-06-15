@@ -8,9 +8,8 @@ namespace ServerGame.Domain.Entities.Accounts;
 public class Account : BaseAuditableEntity
 {
     // Informações básicas da conta
-    public Username Username { get; private set; }
-    public Email Email { get; private set; }
-    public bool IsActive { get; private set; }
+    public Username Username { get; private set; } = null!;
+    public Email Email { get; private set; } = null!;
     public AccountType AccountType { get; private set; } = AccountType.Player;
 
     // Informações de segurança
@@ -20,6 +19,8 @@ public class Account : BaseAuditableEntity
     // Permissões
     private readonly List<Role> _roles = [];
     public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
+
+    protected Account() { }
 
     // Construtor para criação de nova conta
     private Account(Username username, Email email)
@@ -41,8 +42,6 @@ public class Account : BaseAuditableEntity
         return account;
     }
     
-    
-
     // Status
     public bool IsStaff() => AccountType == AccountType.Staff;
     public bool IsAdministrator() => AccountType == AccountType.Administrator;
@@ -200,7 +199,7 @@ public class Account : BaseAuditableEntity
         {
             AccountType.VIP => true,
             AccountType.Staff => HasMinimumRequirementsForStaff(),
-            AccountType.Administrator => HasRole(Role.Admin) && IsStaff(),
+            AccountType.Administrator => IsStaff(), // Removido a exigência de HasRole(Role.Admin)
             _ => false
         };
     }

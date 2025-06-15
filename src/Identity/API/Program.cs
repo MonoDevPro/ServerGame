@@ -1,7 +1,6 @@
 using ServerGame.Api;
 using ServerGame.Api.Infrastructure;
 using ServerGame.Infrastructure;
-using ServerGame.Infrastructure.Database;
 using ServerGame.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,12 +15,8 @@ builder.AddWebServices();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment() && Environment.GetEnvironmentVariable("SkipNSwag") == "True")
-    await app.InitialiseDatabaseAsync();
-else
-{
+if ( !app.Environment.IsDevelopment() )
     app.UseHsts();
-}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -29,6 +24,12 @@ app.UseStaticFiles();
 // Add authentication and authorization middleware
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseOpenApi(settings =>
+{
+    // /api/specification.json
+    settings.Path = "/api/specification.json";
+});
 
 app.UseSwaggerUi(settings =>
 {
@@ -45,12 +46,48 @@ app.MapEndpoints();
 
 app.Run();
 
-namespace ServerGame.Api
+public partial class Program
 {
-    public partial class Program
+    // This class is used to allow the use of partial methods in the Program.cs file.
+    // It is necessary for the application to run correctly.
+}
+
+public class CustomWebApplicationFactory : WebApplicationFactory<Program>
+{
+    private readonly DbConnection _connection;
+    private readonly string _connectionString;
+
+    public CustomWebApplicationFactory(DbConnection connection, string connectionString)
     {
-        // This class is used to allow the Program class to be partial, which is required for the WebApplicationBuilder
-        // to be created in the Program.cs file.
-        // It also allows the Program class to be used in tests.
+        _connection = connection;
+        _connectionString = connectionString;
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+#if (UseAspire)
+        builder.UseSetting("ConnectionStrings:CleanArchitectureDb", _connectionString);
+#endif
+        builder.ConfigureTestServices(services =>
+        {
+            services
+                .RemoveAll<IUser>()
+                .AddTransient(provider => Mock.Of<IUser>(s => s.Id == GetUserId()));
+#if (!UseAspire || UseSqlite)
+            services
+                .RemoveAll<DbContextOptions<ApplicationDbContext>>()
+                .AddDbContext<ApplicationDbContext>((sp, options) =>
+                {
+                    options.AddInterceptors(sp.GetServices<ISaveChangesInterceptor>());
+    #if (UsePostgreSQL)
+                    options.UseNpgsql(_connection);
+    #elif (UseSqlite)
+                    options.UseSqlite(_connection);
+    #else
+                    options.UseSqlServer(_connection);
+    #endif
+                });
+#endif
+        });
     }
 }

@@ -20,11 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Application\Application.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Database\Migrations\Application\" />
-    <Folder Include="Database\Migrations\Domain\" />
+    <ProjectReference Include="..\Infra\Infra.Services\Infra.Services.csproj" />
   </ItemGroup>
 
 </Project>

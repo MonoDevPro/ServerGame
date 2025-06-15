@@ -1,8 +1,6 @@
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Accounts.Services;
-using ServerGame.Application.ApplicationUsers.Services;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Database.Repository;
 using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.ValueObjects.Accounts;
 

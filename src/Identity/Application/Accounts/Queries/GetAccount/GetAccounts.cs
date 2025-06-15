@@ -1,6 +1,6 @@
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Database.Repository;
+using ServerGame.Application.Common.Interfaces.Persistence.Repository;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Application.Accounts.Queries.GetAccount;

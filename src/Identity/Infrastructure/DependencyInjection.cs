@@ -1,14 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Reflection;
+using Infra.Services.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using ServerGame.Application.Accounts.Services;
-using ServerGame.Application.ApplicationUsers.Services;
-using ServerGame.Domain.Constants;
-using ServerGame.Infrastructure.Database;
-using ServerGame.Infrastructure.Database.Application;
-using ServerGame.Infrastructure.Database.Application.Identity;
-using ServerGame.Infrastructure.Database.Application.Identity.Entities;
-using ServerGame.Infrastructure.Services;
+using ServerGame.Infrastructure.Hosted;
 
 namespace ServerGame.Infrastructure;
 
@@ -16,29 +11,31 @@ public static class DependencyInjection
 {
     public static void AddInfrastructureServices(this IHostApplicationBuilder builder)
     {
-        builder.ConfigureDatabaseServices();
-
-        builder.Services.AddAuthentication()
-            .AddBearerToken(IdentityConstants.BearerScheme);
-
-        builder.Services.AddAuthorizationBuilder();
-
-        builder.Services
-            .AddIdentityCore<ApplicationUser>()
-            .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddApiEndpoints();
-
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddHostedService<DataSeedHosted>();
         
-        builder.Services.AddScoped<IUserClaimsPrincipalFactory<ApplicationUser>, ClaimsPrincipalFactory>();
+        var connectionString = builder.Configuration.GetConnectionString("serverdb");
         
-        builder.Services.AddTransient<IIdentityService, IdentityService>();
-        builder.Services.AddScoped<IAccountService, AccountService>();
+        if (string.IsNullOrEmpty(connectionString))
+            throw new InvalidOperationException("Connection string 'serverdb' is not configured.");
 
-        builder.Services.AddAuthorization(options =>
-        {
-            options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator));
-        });
+        // Identity
+        builder.ConfigureIdentityServices(
+            (opt, provider) => 
+                opt.AddConnectionString(
+                        connectionString,
+                        Assembly.GetExecutingAssembly())
+                    .AddMyInterceptors(provider));
+        
+        // Persistence
+        builder.ConfigurePersistenceServices(
+            (opt, provider) => 
+                opt.AddConnectionString(
+                        connectionString,
+                        Assembly.GetExecutingAssembly())
+                    .AddMyInterceptors(provider));
+
+        // Notification
+        builder.ConfigureNotificationServices();
     }
 }

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using ServerGame.Api.Infrastructure;
-using ServerGame.Application.Accounts.Commands.CreateAccount;
-using ServerGame.Application.Accounts.Commands.DeleteAccount;
-using ServerGame.Application.Accounts.Commands.PurgeAccount;
-using ServerGame.Application.Accounts.Commands.UpdateAccount;
+using ServerGame.Application.Accounts.Commands.Create;
+using ServerGame.Application.Accounts.Commands.Delete;
+using ServerGame.Application.Accounts.Commands.Purge;
+using ServerGame.Application.Accounts.Commands.Update;
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Accounts.Queries.GetAccount;
 using ServerGame.Application.Common.Exceptions;
@@ -20,7 +20,7 @@ public class Accounts : EndpointGroupBase
         app.MapGroup(this)
             .RequireAuthorization()
             .MapGet(Get)
-            .MapPost(Create)
+            .MapPost(Create) // ← descomente se quiser permitir criação de contas via API
             .MapPut(Update, "{id}")
             .MapDelete(Delete, "{usernameOrEmail}")
             .MapDelete(Purge, "purge");
@@ -64,15 +64,18 @@ public class Accounts : EndpointGroupBase
         }
     }
 
-    private async Task<Results<NoContent, BadRequest<string[]>, NotFound>> Update(ISender sender, long id, UpdateAccountCommand command)
+    private static readonly string[] Error = ["ID in URL must match ID in request body"];
+    private static readonly string[] error = new[] { "Invalid username or email format" };
+
+    private async Task<Results<Ok, BadRequest<string[]>, NotFound>> Update(ISender sender, long id, UpdateAccountCommand command)
     {
         if (id != command.Id) 
-            return TypedResults.BadRequest(new[] { "ID in URL must match ID in request body" });
+            return TypedResults.BadRequest(Error);
 
         try
         {
             await sender.Send(command);
-            return TypedResults.NoContent();
+            return TypedResults.Ok();
         }
         catch (NotFoundException)
         {
@@ -88,18 +91,16 @@ public class Accounts : EndpointGroupBase
         }
     }
 
-    private async Task<Results<NoContent, BadRequest<string[]>, NotFound>> Delete(ISender sender, string usernameOrEmail)
+    private async Task<Results<Ok, BadRequest<string[]>, NotFound>> Delete(ISender sender, string usernameOrEmail)
     {
         if (!UsernameOrEmail.TryCreate(usernameOrEmail, out var usernameOrEmailVO))
-        {
-            return TypedResults.BadRequest(new[] { "Invalid username or email format" });
-        }
+            return TypedResults.BadRequest(error);
 
         try
         {
             var command = new DeleteAccountCommand(usernameOrEmailVO!);
             await sender.Send(command);
-            return TypedResults.NoContent();
+            return TypedResults.Ok();
         }
         catch (NotFoundException)
         {
@@ -111,13 +112,14 @@ public class Accounts : EndpointGroupBase
         }
     }
 
-    private async Task<Results<NoContent, BadRequest<string[]>, ForbidHttpResult>> Purge(ISender sender)
+    private async Task<Results<Ok, BadRequest<string[]>, ForbidHttpResult>> Purge(ISender sender)
     {
         try
         {
-            var command = new PurgeAccountCommand();
-            await sender.Send(command);
-            return TypedResults.NoContent();
+            var commandAccount = new PurgeAccountCommand();
+            await sender.Send(commandAccount);
+            
+            return TypedResults.Ok();
         }
         catch (UnauthorizedAccessException)
         {

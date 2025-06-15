@@ -1,3 +1,4 @@
+using ServerGame.Application.Accounts.Models;
 using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.ValueObjects.Accounts;
 
@@ -10,4 +11,5 @@ public interface IAccountService
     Task<Account> GetAsync(Email email, CancellationToken cancellationToken = default);
     Task<Account> CreateAsync(Account account, CancellationToken cancellationToken = default);
     Task<Account> UpdateAsync(Account account, CancellationToken cancellationToken = default);
+    Task PurgeAsync(CancellationToken cancellationToken = default);
 }

@@ -16,8 +16,12 @@ public class Account : BaseAuditableEntity
     
     public static Account Create()
     {
-        var account = new Account();
+        var account = new Account
+        {
+            IsActive = true
+        };
         account.AddDomainEvent(new AccountCreatedEvent(account));
+        
         return account;
     }
     

@@ -14,13 +14,6 @@ namespace Infra.Services.DependencyInjection;
 
 public static class CommonServicesExtensions
 {
-    public static DbContextOptionsBuilder AddMyInterceptors(
-        this DbContextOptionsBuilder optionsBuilder, IServiceProvider provider)
-    {
-        optionsBuilder.AddInterceptors(provider.GetServices<ISaveChangesInterceptor>());
-        return optionsBuilder;
-    }
-    
     public static DbContextOptionsBuilder AddConnectionString(
         this DbContextOptionsBuilder optionsBuilder,
         string connectionString,

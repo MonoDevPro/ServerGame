@@ -1,9 +1,12 @@
 ﻿using System.Reflection;
+using Infra.Notification.Interceptors;
 using Infra.Services.DependencyInjection;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ServerGame.Infrastructure.Hosted;
+using ServerGame.Infrastructure.Persistence.Interceptors;
 
 namespace ServerGame.Infrastructure;
 
@@ -18,14 +21,16 @@ public static class DependencyInjection
         
         if (string.IsNullOrEmpty(connectionString))
             throw new InvalidOperationException("Connection string 'serverdb' is not configured.");
+        
+        builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
+        builder.Services.AddScoped<ISaveChangesInterceptor, NotificationInterceptor>();
 
         // Identity
-        builder.ConfigureIdentityServices(
-            (opt, provider) => 
-                opt.AddConnectionString(
-                        connectionString,
-                        Assembly.GetExecutingAssembly())
-                    .AddMyInterceptors(provider));
+        builder.ConfigureIdentityServices((opt, provider) =>
+            opt.AddConnectionString(
+                    connectionString,
+                    Assembly.GetExecutingAssembly())
+                .AddInterceptors(provider.GetServices<ISaveChangesInterceptor>()));
         
         // Persistence
         builder.ConfigurePersistenceServices(
@@ -33,7 +38,7 @@ public static class DependencyInjection
                 opt.AddConnectionString(
                         connectionString,
                         Assembly.GetExecutingAssembly())
-                    .AddMyInterceptors(provider));
+                    .AddInterceptors(provider.GetServices<ISaveChangesInterceptor>()));
 
         // Notification
         builder.ConfigureNotificationServices();

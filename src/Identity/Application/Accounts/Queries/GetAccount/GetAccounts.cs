@@ -1,6 +1,7 @@
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Common.Interfaces;
 using ServerGame.Application.Common.Interfaces.Persistence.Repository;
+using ServerGame.Application.Common.Security;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Application.Accounts.Queries.GetAccount;
@@ -22,9 +23,7 @@ public class GetAccountsQueryHandler(IReaderRepository<Account> accountRepositor
             pageIndex: request.PageNumber,
             pageSize: request.PageSize,
             predicate: a => 
-                (string.IsNullOrEmpty(request.SearchTerm) || 
-                 a.Username.Value.Contains(request.SearchTerm) || 
-                 a.Email.Value.Contains(request.SearchTerm)) &&
+                (string.IsNullOrEmpty(request.SearchTerm)) &&
                 (!request.IsActive.HasValue || a.IsActive == request.IsActive.Value) &&
                 (string.IsNullOrEmpty(request.AccountType) || 
                  a.AccountType.ToString().ToLower() == request.AccountType.ToLower()),

@@ -11,40 +11,17 @@ public class UpdateAccountCommandValidator : AbstractValidator<UpdateAccountComm
     {
         _repository = repository;
         
-        RuleFor(v => v.Id)
+        RuleFor(v => v)
             .NotEmpty()
             .MustAsync(BeExistsEntity)
-            .WithMessage("Account with the specified ID does not exist.")
+            .WithMessage("Account with the specified UserId does not exist.")
             .WithErrorCode("NotFound");
-
-        RuleFor(v => v.Email)
-            .NotEmpty()
-            .MustAsync(BeUniqueEmail);
-        RuleFor(v => v.Username)
-            .NotEmpty()
-            .MustAsync(BeUniqueUsername);
     }
     
-    private async Task<bool> BeExistsEntity(UpdateAccountCommand command, long id, CancellationToken cancellationToken)
+    private async Task<bool> BeExistsEntity(UpdateAccountCommand command, CancellationToken cancellationToken)
     {
         return await _repository.ExistsAsync(
-            a => a.Id == id,
-            cancellationToken
-        );
-    }
-    
-    private async Task<bool> BeUniqueUsername(UpdateAccountCommand command, Username username, CancellationToken cancellationToken)
-    {
-        return !await _repository.ExistsAsync(
-            a => a.Username == username && a.Id != command.Id,
-            cancellationToken
-        );
-    }
-    
-    private async Task<bool> BeUniqueEmail(UpdateAccountCommand command, Email email, CancellationToken cancellationToken)
-    {
-        return !await _repository.ExistsAsync(
-            a => a.Email == email && a.Id != command.Id,
+            a => a.CreatedBy == command.UserId,
             cancellationToken
         );
     }

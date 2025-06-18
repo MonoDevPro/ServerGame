@@ -1,51 +1,48 @@
+using ServerGame.Application.Accounts.Commands.Create;
 using ServerGame.Application.Accounts.Models;
 using ServerGame.Application.Accounts.Services;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Domain.ValueObjects.Accounts;
+using ServerGame.Domain.Exceptions;
 
 namespace ServerGame.Application.Accounts.Queries.GetAccount;
 
 public record GetAccountInfoQuery : IRequest<AccountDto>;
 
-public class GetAccountInfoQueryHandler : IRequestHandler<GetAccountInfoQuery, AccountDto>
+public class GetAccountInfoQueryHandler(
+    IUser user,
+    IAccountService accountService,
+    IMapper mapper,
+    IMediator mediator)
+    : IRequestHandler<GetAccountInfoQuery, AccountDto>
 {
-    private readonly IUser _user;
-    private readonly IIdentityService _identityService;
-    private readonly IAccountService _accountService;
-    private readonly IMapper _mapper;
-
-    public GetAccountInfoQueryHandler(
-        IUser user,
-        IIdentityService identityService,
-        IAccountService accountService,
-        IMapper mapper)
-    {
-        _user = user;
-        _identityService = identityService;
-        _accountService = accountService;
-        _mapper = mapper;
-    }
-
     public async Task<AccountDto> Handle(GetAccountInfoQuery request, CancellationToken cancellationToken)
     {
-        var usernameValue = await _identityService.GetUserNameAsync(_user.Id!);
-        
-        Guard.Against.Null(usernameValue, nameof(usernameValue),
-            "User ID is null or user name could not be retrieved.");
+        var userId = user.Id;
+        Guard.Against.Null(userId, nameof(userId),
+            "User ID is null or user name could not be retrieved.", () => new Exception("User ID is null or user name could not be retrieved."));
         try
         {
-            var username = Username.Create(usernameValue);
-            var account = await _accountService.GetAsync(username, cancellationToken);
+            
+            var accountExists = await accountService.ExistsAsync(userId, cancellationToken);
+            if (!accountExists)
+            {
+                // Se a conta não existir, vamos criar uma nova
+                var createAccountCommand = new CreateAccountCommand(userId);
+                await mediator.Send(createAccountCommand, cancellationToken);
+            }
+            
+            var account = await accountService.GetAsync(userId, cancellationToken);
+            
+            // Se mesmo após tentar criar ainda está nulo, então realmente há um problema
             Guard.Against.Null(account, nameof(account), 
-                $"Account with username '{usernameValue}' not found.");
+                $"Failed to create account for user id '{userId}'.", 
+                () => new DomainException($"Failed to create account for user id '{userId}'."));
             
-            return _mapper.Map<AccountDto>(account);
-            
+            return mapper.Map<AccountDto>(account);
         }
         catch (Exception ex)
         {
-            throw new Exception($"Error retrieving account for user '{usernameValue}': {ex.Message}", ex);
+            throw new Exception($"Error retrieving account for user '{userId}': {ex.Message}", ex);
         }
     }
 }

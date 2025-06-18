@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Data;
+using ServerGame.Application.Common.Interfaces.Persistence;
 using ServerGame.Application.Common.Interfaces.Persistence.Repository;
 using ServerGame.Application.Common.Models;
 

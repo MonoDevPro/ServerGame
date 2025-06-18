@@ -1,11 +1,10 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
 using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Infrastructure.Persistence.DbContexts;
 
-public class AccountDbContext(DbContextOptions<AccountDbContext> options) 
+public class GameDbContext(DbContextOptions<GameDbContext> options) 
     : DbContext(options)
 {
     public DbSet<Account> Accounts => Set<Account>();
@@ -13,6 +12,8 @@ public class AccountDbContext(DbContextOptions<AccountDbContext> options)
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        
+        builder.HasDefaultSchema("gameserver");
 
         builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
     }

@@ -13,25 +13,15 @@ public class CreateAccountCommandValidator : AbstractValidator<CreateAccountComm
     {
         _repository = repository;
         
-        RuleFor(v => v.Email)
+        RuleFor(v => v.userId)
             .NotEmpty()
-            .MustAsync(BeUniqueEmail)
-            .WithMessage("'{PropertyName}' must be unique.")
-            .WithErrorCode("Unique");
-        RuleFor(v => v.Username)
-            .NotEmpty()
-            .MustAsync(BeUniqueUsername)
+            .MustAsync(BeUniqueForUser)
             .WithMessage("'{PropertyName}' must be unique.")
             .WithErrorCode("Unique");
     }
     
-    private async Task<bool> BeUniqueUsername(Username username, CancellationToken cancellationToken)
+    private async Task<bool> BeUniqueForUser(string userId, CancellationToken cancellationToken)
     {
-        return !await _repository.ExistsAsync(a => a.Username == username, cancellationToken);
-    }
-    
-    private async Task<bool> BeUniqueEmail(Email email, CancellationToken cancellationToken)
-    {
-        return !await _repository.ExistsAsync(a => a.Email == email, cancellationToken);
+        return !await _repository.ExistsAsync(a => a.CreatedBy == userId, cancellationToken);
     }
 }

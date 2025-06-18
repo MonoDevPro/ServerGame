@@ -1,6 +1,6 @@
 using System.Reflection;
 using Ardalis.GuardClauses;
-using Infra.Services.Persistence.Accounts;
+using Infra.Services.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,16 +33,16 @@ public static class PersistenceServicesExtension
     {
         hostBuilder.Services.AddScoped<IAccountService, AccountService>();
         
-        hostBuilder.Services.AddDbContext<AccountDbContext>((sp, opt) =>
+        hostBuilder.Services.AddDbContext<GameDbContext>((sp, opt) =>
         {
             contextOptionsBuilder.Invoke(opt, sp);
         });
         
         // Registrar repositórios
-        hostBuilder.RegisterRepositoriesFor<AccountDbContext>(
+        hostBuilder.RegisterRepositoriesFor<GameDbContext>(
             typeof(Account) /* entidades de domínio */);
 
-        hostBuilder.EnrichNpgsqlDbContext<AccountDbContext>();
+        hostBuilder.EnrichNpgsqlDbContext<GameDbContext>();
 
         return hostBuilder;
     }

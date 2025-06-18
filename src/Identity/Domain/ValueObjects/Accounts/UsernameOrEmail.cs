@@ -2,6 +2,7 @@ using Ardalis.GuardClauses;
 
 namespace ServerGame.Domain.ValueObjects.Accounts;
 
+[Obsolete ("Identity manage username or email, this is not used anymore")]
 public sealed record UsernameOrEmail : ValueObject
 {
     public Username? Username { get; } = null;

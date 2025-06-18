@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
-using ServerGame.Application.Common.Interfaces.Data;
 
 namespace ServerGame.Application.Common.Interfaces.Persistence.Repository;
 

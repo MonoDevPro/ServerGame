@@ -12,19 +12,18 @@ public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountComm
     {
         _repository = repository;
 
-        RuleFor(v => v.UsernameOrEmail)
+        RuleFor(v => v)
             .NotEmpty()
             .MustAsync(BeExistsEntity)
-            .WithMessage("Account with the specified username or email does not exist.")
+            .WithMessage("Account with the specified userId does not exists.")
             .WithErrorCode("NotFound");
     }
     
-    public async Task<bool> BeExistsEntity(DeleteAccountCommand command, UsernameOrEmail usernameOrEmail, CancellationToken cancellationToken)
+    public async Task<bool> BeExistsEntity(DeleteAccountCommand command, CancellationToken cancellationToken)
     {
         return await _repository.ExistsAsync(a => 
-                a.Email        == usernameOrEmail 
-                 || a.Username == usernameOrEmail,
-                                     cancellationToken
+                a.CreatedBy        == command.userId ,
+                cancellationToken
         );
     }
 }

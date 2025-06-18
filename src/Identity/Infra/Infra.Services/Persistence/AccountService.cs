@@ -1,11 +1,9 @@
-using Microsoft.EntityFrameworkCore;
 using ServerGame.Application.Accounts.Services;
-using ServerGame.Application.Common.Interfaces.Data;
+using ServerGame.Application.Common.Interfaces.Persistence;
 using ServerGame.Application.Common.Interfaces.Persistence.Repository;
 using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Domain.ValueObjects.Accounts;
 
-namespace Infra.Services.Persistence.Accounts;
+namespace Infra.Services.Persistence;
 
 public class AccountService(
     IRepositoryCompose<Account> accountRepository)
@@ -15,36 +13,22 @@ public class AccountService(
     private IReaderRepository<Account> ReaderAccountRepository => _accountRepository.ReaderRepository;
     private IWriterRepository<Account> WriterAccountRepository => _accountRepository.WriterRepository;
 
-    public async Task<bool> ExistsAsync(UsernameOrEmail usernameOrEmail, CancellationToken cancellationToken = default)
+    public async Task<bool> ExistsAsync(string userId, CancellationToken cancellationToken = default)
     {
         // 2) Execute a consulta e retorne o resultado:
         return await ReaderAccountRepository
-            .ExistsAsync(a =>
-                a.Username == usernameOrEmail.Username || 
-                a.Email == usernameOrEmail.Email, 
+            .ExistsAsync(a => a.CreatedBy == userId,
                 cancellationToken: cancellationToken);
     }
 
-    public async Task<Account> GetAsync(Username username, CancellationToken cancellationToken = default)
+    public async Task<Account> GetAsync(string userId, CancellationToken cancellationToken = default)
     {
         // 2) Monte a expressão para o EF (que compara duas strings):
         return await ReaderAccountRepository
             .QuerySingleAsync<Account>(
-                predicate: a => a.Username     == username,
-                include: accounts => accounts.Include(a => a.Roles),
-                trackingType: TrackingType.Tracking,
-                cancellationToken: cancellationToken) ?? throw new KeyNotFoundException($"Account with username '{username.Value}' not found.");
-    }
-
-    public async Task<Account> GetAsync(Email email, CancellationToken cancellationToken = default)
-    {
-        // 2) Monte a expressão para o EF (que compara duas strings):
-        return await ReaderAccountRepository
-            .QuerySingleAsync<Account>(
-                predicate: a => a.Email     == email,
-                include: accounts => accounts.Include(a => a.Roles),
-                trackingType: TrackingType.Tracking,
-                cancellationToken: cancellationToken) ?? throw new KeyNotFoundException($"Account with email '{email.Value}' not found.");
+                predicate: a => a.CreatedBy == userId,
+                trackingType: TrackingType.NoTracking,
+                cancellationToken: cancellationToken) ?? throw new KeyNotFoundException($"Account with userId '{userId}' not found.");
     }
 
     public async Task<Account> CreateAsync(Account account, CancellationToken cancellationToken = default)

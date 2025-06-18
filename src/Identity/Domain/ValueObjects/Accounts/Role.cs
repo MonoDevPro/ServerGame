@@ -1,5 +1,6 @@
 namespace ServerGame.Domain.ValueObjects.Accounts;
 
+[Obsolete ("Identity manage roles, this is not used anymore")]
 public sealed record Role: ValueObject
 {
     // Definições dos papéis disponíveis

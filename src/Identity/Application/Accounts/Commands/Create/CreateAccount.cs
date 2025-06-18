@@ -8,8 +8,7 @@ using ServerGame.Domain.ValueObjects.Accounts;
 namespace ServerGame.Application.Accounts.Commands.Create;
 
 public record CreateAccountCommand(
-    [Required] Username Username,
-    [Required] Email Email
+    [Required] string userId
 ) : IRequest;
 
 public class CreateAccountCommandHandler(
@@ -22,12 +21,12 @@ public class CreateAccountCommandHandler(
         try
         {
             // Criar entidade de domínio
-            var entity = Account.Create(request.Username, request.Email);
+            var entity = Account.Create();
 
             // Salvar
             entity = await accountService.CreateAsync(entity, cancellationToken);
             
-            logger.LogInformation("Conta criada com sucesso: {Username}, {Email}", entity.Username.Value, entity.Email.Value);
+            logger.LogInformation("Conta criada com sucesso: {UserId}", entity.CreatedBy);
         }
         catch (DomainException ex)
         {

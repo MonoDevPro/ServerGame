@@ -1,6 +1,8 @@
+using MediatR;
+
 namespace ServerGame.Domain.Events;
 
-public interface IDomainEvent
+public interface IDomainEvent : INotification
 {
     /// <summary>
     /// Identificador único do evento.

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Logging;
-using ServerGame.Application.Common.Interfaces.Data;
+using ServerGame.Application.Common.Interfaces.Persistence;
 using ServerGame.Application.Common.Interfaces.Persistence.Repository;
 using ServerGame.Domain.Entities.Accounts;
 using ServerGame.Domain.Exceptions;
@@ -9,7 +9,7 @@ using ServerGame.Domain.ValueObjects.Accounts;
 namespace ServerGame.Application.Accounts.Commands.Delete;
 
 public record DeleteAccountCommand(
-    [Required] UsernameOrEmail UsernameOrEmail
+    [Required] string userId
 ) : IRequest;
 
 public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand>
@@ -35,8 +35,7 @@ public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand>
         {
             // Buscar entidade de domínio
             var entity = await _accountRepositoryReader.QuerySingleAsync(
-                a => a.Email == request.UsernameOrEmail 
-                     || a.Username == request.UsernameOrEmail,
+                a => a.CreatedBy == request.userId,
                 account => account,
                 trackingType: TrackingType.Tracking,
                 cancellationToken: cancellationToken

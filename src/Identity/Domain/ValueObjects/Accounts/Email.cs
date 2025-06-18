@@ -3,6 +3,7 @@ using ServerGame.Domain.Rules;
 
 namespace ServerGame.Domain.ValueObjects.Accounts;
 
+[Obsolete ("Identity manage email, this is not used anymore")]
 public sealed record Email : ValueObject
 {
     public string Value { get; }

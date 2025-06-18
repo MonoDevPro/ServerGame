@@ -7,46 +7,23 @@ namespace ServerGame.Domain.Entities.Accounts;
 
 public class Account : BaseAuditableEntity
 {
-    // Informações básicas da conta
-    public Username Username { get; private set; } = null!;
-    public Email Email { get; private set; } = null!;
+    // Propriedade virtual de navegação para o usuário.
     public AccountType AccountType { get; private set; } = AccountType.Player;
-
-    // Informações de segurança
     public BanInfo? BanInfo { get; private set; }
     public LoginInfo? LastLoginInfo { get; private set; }
 
-    // Permissões
-    private readonly List<Role> _roles = [];
-    public IReadOnlyCollection<Role> Roles => _roles.AsReadOnly();
-
     protected Account() { }
-
-    // Construtor para criação de nova conta
-    private Account(Username username, Email email)
-    {
-        Username = Guard.Against.Null(username, nameof(username));
-        Email = Guard.Against.Null(email, nameof(email));
-        IsActive = true;
-        BanInfo = BanInfo.NotBanned;
-    }
     
-    public static Account Create(Username username, Email email)
+    public static Account Create()
     {
-        Guard.Against.Null(username, nameof(username));
-        Guard.Against.Null(email, nameof(email));
-        var account = new Account(username, email);
-        
-        account.AddRole(Role.Player);
-        account.AddDomainEvent(new AccountDomainCreatedEvent(account));
+        var account = new Account();
+        account.AddDomainEvent(new AccountCreatedEvent(account));
         return account;
     }
     
     // Status
     public bool IsStaff() => AccountType == AccountType.Staff;
     public bool IsAdministrator() => AccountType == AccountType.Administrator;
-    public bool HasRole(Role role) => _roles.Contains(role);
-    public bool HasRole(string role) => _roles.Any(r => r.Value.Equals(role, StringComparison.OrdinalIgnoreCase));
 
     // Ativar / Desativar
     public void Activate()
@@ -54,14 +31,14 @@ public class Account : BaseAuditableEntity
         if (IsActive) 
             return;
         IsActive = true;
-        AddDomainEvent(new AccountDomainActivatedEvent(this));
+        AddDomainEvent(new AccountActivatedEvent(this));
     }
 
     public void Deactivate()
     {
         if (!IsActive) return;
         IsActive = false;
-        AddDomainEvent(new AccountDomainDeactivatedEvent(this));
+        AddDomainEvent(new AccountDeactivatedEvent(this));
     }
 
     // Ban management
@@ -74,11 +51,11 @@ public class Account : BaseAuditableEntity
             throw new DomainException("Administradores não podem ser banidos");
 
         BanInfo = banInfo;
-        AddDomainEvent(new AccountDomainBanUpdatedEvent(this, banInfo));
+        AddDomainEvent(new AccountBanUpdatedEvent(this, banInfo));
     }
 
     // Autenticação e sessão
-    public void RecordSuccessfulLogin(LoginInfo loginInfo)
+    public void Login(LoginInfo loginInfo)
     {
         Guard.Against.Null(loginInfo, nameof(loginInfo));
         if (!IsActive)
@@ -88,58 +65,18 @@ public class Account : BaseAuditableEntity
             throw new DomainException($"Conta banida até {BanInfo.ExpiresAt}. Motivo: {BanInfo.Reason}");
 
         LastLoginInfo = loginInfo;
-        AddDomainEvent(new AccountDomainLoggedIn(this, loginInfo));
+        AddDomainEvent(new AccountLoggedIn(this, loginInfo));
     }
 
-    public void RecordFailedLoginAttempt(LoginInfo loginInfo)
+    public void LoginAttemptFailed(LoginInfo loginInfo)
     {
         Guard.Against.Null(loginInfo, nameof(loginInfo));
-        AddDomainEvent(new AccountDomainLoginFailed(this, loginInfo));
+        AddDomainEvent(new AccountLoginFailed(this, loginInfo));
     }
 
-    public void RecordLogout()
+    public void Logout()
     {
-        AddDomainEvent(new AccountDomainLoggedOut(this));
-    }
-
-    // Atualização de dados
-    public void UpdateEmail(Email newEmail)
-    {
-        Guard.Against.Null(newEmail, nameof(newEmail));
-        if (newEmail.Equals(Email)) return;
-        var previous = Email;
-        Email = newEmail;
-        AddDomainEvent(new AccountDomainEmailUpdatedEvent(this, previous, newEmail));
-    }
-
-    public void UpdateUsername(Username newUsername)
-    {
-        Guard.Against.Null(newUsername, nameof(newUsername));
-        if (newUsername.Equals(Username)) return;
-        var previous = Username;
-        Username = newUsername;
-        AddDomainEvent(new AccountDomainUsernameUpdatedEvent(this, previous, newUsername));
-    }
-
-    // Roles e tipo de conta
-    public void AddRole(Role role)
-    {
-        Guard.Against.Null(role, nameof(role));
-        if (_roles.Contains(role)) return;
-
-        if (role == Role.Admin && AccountType != AccountType.Administrator)
-            throw new DomainException("Apenas administradores podem ter a role admin");
-
-        _roles.Add(role);
-        AddDomainEvent(new AccountDomainRoleAddedEvent(this, role));
-    }
-
-    public void RemoveRole(Role role)
-    {
-        Guard.Against.Null(role, nameof(role));
-        if (!_roles.Contains(role)) return;
-        _roles.Remove(role);
-        AddDomainEvent(new AccountDomainRoleRemovedEvent(this, role));
+        AddDomainEvent(new AccountLoggedOut(this));
     }
 
     public void PromoteToStaff()
@@ -154,7 +91,7 @@ public class Account : BaseAuditableEntity
 
         var previous = AccountType;
         AccountType = AccountType.Staff;
-        AddDomainEvent(new AccountDomainTypeChangedEvent(this, previous, AccountType));
+        AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
     }
 
     public void PromoteTo(AccountType newType)
@@ -165,28 +102,7 @@ public class Account : BaseAuditableEntity
         var previous = AccountType;
         AccountType = newType;
 
-        // adiciona role admin automaticamente para admins
-        if (newType == AccountType.Administrator && !HasRole(Role.Admin))
-            _roles.Add(Role.Admin);
-
-        AddDomainEvent(new AccountDomainTypeChangedEvent(this, previous, AccountType));
-    }
-
-    public bool HasPermissionTo(string action)
-    {
-        if (AccountType == AccountType.Administrator)
-            return true;
-
-        return action.ToLowerInvariant() switch
-        {
-            "moderate_chat" => Roles.Any(r => r.CanModerateChat()) || IsStaff(),
-            "manage_accounts" => Roles.Any(r => r.CanManageAccounts()),
-            "view_reports" => HasRole(Role.Moderator) || HasRole(Role.Support) || IsStaff(),
-            "access_vip_area" => HasRole(Role.Vip) || AccountType == AccountType.VIP || IsStaff(),
-            "create_game_items" => HasRole(Role.GameMaster) || IsStaff(),
-            "manage_servers" => IsAdministrator(),
-            _ => false
-        };
+        AddDomainEvent(new AccountTypeChangedEvent(this, previous, AccountType));
     }
 
     public bool CanBePromotedTo(AccountType newType)
@@ -205,5 +121,5 @@ public class Account : BaseAuditableEntity
     }
 
     private bool HasMinimumRequirementsForStaff()
-        => HasRole(Role.Moderator) || HasRole(Role.Support) || HasRole(Role.GameMaster);
+        => true;
 }

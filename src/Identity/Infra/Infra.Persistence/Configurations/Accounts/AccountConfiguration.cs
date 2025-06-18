@@ -14,26 +14,6 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
         
         builder.ToTable("Accounts");
         
-        // Configurações de propriedades
-        builder.Property(a => a.IsActive);
-        builder.Property(a => a.AccountType);
-
-        // Configuração dos Value Objects com conversores customizados
-        builder.Property(a => a.Email)
-            .HasConversion(
-                v => v.Value, // Para o banco
-                v => Email.Create(v) // Para o domínio
-            )
-            .HasColumnName("Email").IsRequired();
-
-        builder.Property(a => a.Username)
-            .HasConversion(
-                v => v.Value,
-                v => Username.Create(v)
-            )
-            .HasColumnName("Username").IsRequired();
-
-
         builder.OwnsOne(a => a.BanInfo, ban =>
         {
             ban.Property(b => b.Status)
@@ -60,23 +40,6 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .HasColumnName("LastLoginInfo")
             .HasMaxLength(100)
             .IsRequired(false);
-        
-        builder.OwnsMany(a => a.Roles, roles =>
-        {
-            roles.WithOwner().HasForeignKey("AccountId");
-            roles.ToTable("AccountRoles");
-
-            // converter e nome de coluna
-            roles.Property(a => a.Value)
-                .HasColumnName("Role")
-                .HasConversion(
-                    v => v,
-                    v => Role.Create(v)!
-                );
-
-            // chave primária composta: shadow AccountId + CLR Value
-            roles.HasKey("AccountId", nameof(Role.Value));
-        });
     }
 }
 

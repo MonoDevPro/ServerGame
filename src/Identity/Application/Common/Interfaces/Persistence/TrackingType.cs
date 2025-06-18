@@ -1,4 +1,4 @@
-namespace ServerGame.Application.Common.Interfaces.Data;
+namespace ServerGame.Application.Common.Interfaces.Persistence;
 
 /// <summary>
 /// Changes Tracking Type for DbSet operations

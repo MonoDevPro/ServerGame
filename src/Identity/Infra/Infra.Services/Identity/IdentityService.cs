@@ -3,6 +3,7 @@ using Infra.Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using ServerGame.Application.Common.Interfaces;
+using ServerGame.Application.Common.Interfaces.Identity;
 using ServerGame.Application.Common.Models;
 
 namespace Infra.Services.Identity;

@@ -1,9 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using ServerGame.Application.Common.Interfaces;
-using ServerGame.Application.Common.Interfaces.Dispatchers;
 using ServerGame.Application.Common.Interfaces.Notification.Dispatchers;
+using ServerGame.Domain.Entities;
 
 namespace Infra.Notification.Interceptors;
 
@@ -40,20 +39,20 @@ public class NotificationInterceptor(INotificationDispatcher<INotification>? not
 
         foreach (var entity in entitiesWithDomainEvents)
         {
-            if (entity.PendingNotifications.Count > 0)
+            if (entity.Events.Count > 0)
             {
-                _pendingNotifications.AddRange(entity.PendingNotifications);
+                _pendingNotifications.AddRange(entity.Events);
                 
                 // Clear the notifications after collecting
-                entity.ClearPendingNotifications();
+                entity.ClearDomainEvents();
             }
         }
     }
     
-    private static IEnumerable<IHasNotifications> GetEntitiesWithNotifications(DbContext context)
+    private static IEnumerable<IHasDomainEvents> GetEntitiesWithNotifications(DbContext context)
     {
         return context.ChangeTracker
-            .Entries<IHasNotifications>()
+            .Entries<IHasDomainEvents>()
             .Select(e => e.Entity);
     }
 }

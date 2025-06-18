@@ -4,12 +4,12 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Domain.Events.Accounts;
 
-public class AccountDomainLoginFailed : AccountDomainEvent
+public class AccountLoginFailed : AccountEvent
 {
     public string IpAddress { get; }
     public DateTime LoginTime { get; }
 
-    public AccountDomainLoginFailed(
+    public AccountLoginFailed(
         Account account,
         LoginInfo login
         ) : base(account)

@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.Extensions.Logging;
-using ServerGame.Application.Common.Interfaces.Dispatchers;
 using ServerGame.Application.Common.Interfaces.Notification.Dispatchers;
 
 namespace Infra.Notification.Dispatchers;

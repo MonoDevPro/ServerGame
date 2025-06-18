@@ -1,3 +1,3 @@
 global using Ardalis.GuardClauses;
 global using MediatR;
-global using ServerGame.Application;
+global using ServerGame.Api.Infrastructure;

@@ -1,13 +1,12 @@
 ﻿using Microsoft.Extensions.Logging;
-using ServerGame.Application.Accounts.Notifications.Adapters;
 using ServerGame.Domain.Events.Accounts;
 
 namespace ServerGame.Application.Accounts.Notifications;
 
 public class AccountCreatedNotificationHandler(ILogger<AccountCreatedNotificationHandler> logger)
-    : INotificationHandler<DomainEventNotification<AccountDomainCreatedEvent>>
+    : INotificationHandler<AccountCreatedEvent>
 {
-    public Task Handle(DomainEventNotification<AccountDomainCreatedEvent> notification, CancellationToken cancellationToken)
+    public Task Handle(AccountCreatedEvent notification, CancellationToken cancellationToken)
     {
         logger.LogInformation("ServerGame Domain Event: {DomainEvent}", notification.GetType().Name);
         

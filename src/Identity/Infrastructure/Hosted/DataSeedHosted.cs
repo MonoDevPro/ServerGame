@@ -11,21 +11,36 @@ public class DataSeedHosted(
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (Environment.GetEnvironmentVariable("SkipNSwag") == "False")
-            return;
-        
         using var scope = provider.CreateScope();
         
-        var contexts = scope.ServiceProvider.GetServices<DbContext>();
+        // Descobre todos os DbContexts registrados no DI
+        var dbContextTypes = AppDomain.CurrentDomain
+            .GetAssemblies()
+            .SelectMany(a => a.GetTypes())
+            .Where(t => typeof(DbContext).IsAssignableFrom(t) && t is { IsAbstract: false, IsGenericType: false })
+            .ToArray();
+
+        var contexts = dbContextTypes
+            .Select(t => scope.ServiceProvider.GetService(t) as DbContext)
+            .Where(c => c != null)
+            .ToArray();
+        
+        if (contexts.Length == 0)
+        {
+            logger.LogWarning("No DbContext instances found. Skipping database migration.");
+            return;
+        }
+        
+        logger.LogInformation("Found {Count} DbContext instances. Initialising databases...", contexts.Length);
         
         foreach (var context in contexts)
             try
             {
-                await context.Database.MigrateAsync(cancellationToken: cancellationToken);
+                await context!.Database.MigrateAsync(cancellationToken: cancellationToken);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "An error occurred while initialising the database with {SeederType}", context.GetType().Name);
+                logger.LogError(ex, "An error occurred while initialising the database with {SeederType}", context!.GetType().Name);
                 throw;
             }
     }

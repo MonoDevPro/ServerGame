@@ -1,17 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Logging;
-using ServerGame.Application.Common.Interfaces.Data;
+using ServerGame.Application.Common.Interfaces.Persistence;
 using ServerGame.Application.Common.Interfaces.Persistence.Repository;
 using ServerGame.Domain.Entities.Accounts;
-using ServerGame.Domain.ValueObjects.Accounts;
 using ValidationException = System.ComponentModel.DataAnnotations.ValidationException;
 
 namespace ServerGame.Application.Accounts.Commands.Update;
 
 public record UpdateAccountCommand(
-    [Required] long Id,
-    [Required] Username Username,
-    [Required] Email Email
+    [Required] string UserId
 ) : IRequest;
 
 public class UpdateAccountCommandHandler : IRequestHandler<UpdateAccountCommand>
@@ -37,8 +34,8 @@ public class UpdateAccountCommandHandler : IRequestHandler<UpdateAccountCommand>
         {
             // Buscar entidade de domínio
             var entity = await _accountRepositoryReader.QuerySingleAsync<Account>(
-                a => a.Id == request.Id,
-                trackingType: TrackingType.NoTracking,
+                a => a.CreatedBy == request.UserId,
+                trackingType: TrackingType.Tracking,
                 cancellationToken: cancellationToken
             );
             
@@ -47,10 +44,6 @@ public class UpdateAccountCommandHandler : IRequestHandler<UpdateAccountCommand>
                 nameof(entity), 
                 "Account not found in the database."
             );
-
-            // Atualizar entidade de domínio
-            entity.UpdateUsername(request.Username);
-            entity.UpdateEmail(request.Email);
 
             // Salvar
             await _accountRepositoryWriter.UpdateAsync(entity, cancellationToken);

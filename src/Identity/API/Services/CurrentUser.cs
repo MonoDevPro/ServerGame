@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Infra.Identity.Persistence.Entities;
 using ServerGame.Application.Common.Interfaces;
 
 namespace ServerGame.Api.Services;

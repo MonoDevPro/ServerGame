@@ -6,9 +6,8 @@ namespace ServerGame.Application.Accounts.Services;
 
 public interface IAccountService
 {
-    Task<bool> ExistsAsync(UsernameOrEmail usernameOrEmail, CancellationToken cancellationToken = default);
-    Task<Account> GetAsync(Username username, CancellationToken cancellationToken = default);
-    Task<Account> GetAsync(Email email, CancellationToken cancellationToken = default);
+    Task<bool> ExistsAsync(string userId, CancellationToken cancellationToken = default);
+    Task<Account> GetAsync(string userId, CancellationToken cancellationToken = default);
     Task<Account> CreateAsync(Account account, CancellationToken cancellationToken = default);
     Task<Account> UpdateAsync(Account account, CancellationToken cancellationToken = default);
     Task PurgeAsync(CancellationToken cancellationToken = default);

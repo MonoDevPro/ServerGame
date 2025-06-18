@@ -29,7 +29,7 @@ public class Accounts : EndpointGroupBase
     {
         try
         {
-            var query = new GetAccountInfoQuery();
+            var query = new GetAccountQuery();
             var result = await sender.Send(query);
             return TypedResults.Ok(result);
         }

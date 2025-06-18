@@ -69,7 +69,7 @@ public class Users : BaseIdentityEndpoints<ApplicationUser>
         // Se o login foi bem-sucedido, obtemos o usuário autenticado,
         // caso contrário a conta vaai ser criada no primeiro login e retornamos o resultado de login.
         var mediator = signInManager.Context.RequestServices.GetRequiredService<IMediator>();
-        await mediator.Send(new GetAccountInfoQuery());
+        await mediator.Send(new GetAccountQuery());
 
         return loginResult;
     }

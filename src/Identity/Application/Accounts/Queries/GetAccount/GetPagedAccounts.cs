@@ -6,7 +6,7 @@ using ServerGame.Domain.Entities.Accounts;
 
 namespace ServerGame.Application.Accounts.Queries.GetAccount;
 
-public record GetAccountsQuery(
+public record GetPagedAccountsQuery(
     int PageNumber = 1,
     int PageSize = 10,
     string? SearchTerm = null,
@@ -14,10 +14,10 @@ public record GetAccountsQuery(
     string? AccountType = null
 ) : IRequest<IPagedList<AccountDto>>;
 
-public class GetAccountsQueryHandler(IReaderRepository<Account> accountRepository, IMapper mapper)
-    : IRequestHandler<GetAccountsQuery, IPagedList<AccountDto>>
+public class GetPagedAccountsQueryHandler(IReaderRepository<Account> accountRepository, IMapper mapper)
+    : IRequestHandler<GetPagedAccountsQuery, IPagedList<AccountDto>>
 {
-    public async Task<IPagedList<AccountDto>> Handle(GetAccountsQuery request, CancellationToken cancellationToken)
+    public async Task<IPagedList<AccountDto>> Handle(GetPagedAccountsQuery request, CancellationToken cancellationToken)
     {
         var accounts = await accountRepository.QueryPagedListAsync(
             pageIndex: request.PageNumber,

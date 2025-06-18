@@ -7,9 +7,7 @@ using ServerGame.Domain.ValueObjects.Accounts;
 
 namespace ServerGame.Application.Accounts.Commands.Create;
 
-public record CreateAccountCommand(
-    [Required] string userId
-) : IRequest;
+public record CreateAccountCommand : IRequest;
 
 public class CreateAccountCommandHandler(
     IAccountService accountService,

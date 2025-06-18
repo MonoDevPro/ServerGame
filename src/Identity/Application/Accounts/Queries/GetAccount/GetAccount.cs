@@ -6,16 +6,16 @@ using ServerGame.Domain.Exceptions;
 
 namespace ServerGame.Application.Accounts.Queries.GetAccount;
 
-public record GetAccountInfoQuery : IRequest<AccountDto>;
+public record GetAccountQuery : IRequest<AccountDto>;
 
-public class GetAccountInfoQueryHandler(
+public class GetAccountQueryHandler(
     IUser user,
     IAccountService accountService,
     IMapper mapper,
     IMediator mediator)
-    : IRequestHandler<GetAccountInfoQuery, AccountDto>
+    : IRequestHandler<GetAccountQuery, AccountDto>
 {
-    public async Task<AccountDto> Handle(GetAccountInfoQuery request, CancellationToken cancellationToken)
+    public async Task<AccountDto> Handle(GetAccountQuery request, CancellationToken cancellationToken)
     {
         var userId = user.Id;
         Guard.Against.Null(userId, nameof(userId),
@@ -27,7 +27,7 @@ public class GetAccountInfoQueryHandler(
             if (!accountExists)
             {
                 // Se a conta não existir, vamos criar uma nova
-                var createAccountCommand = new CreateAccountCommand(userId);
+                var createAccountCommand = new CreateAccountCommand();
                 await mediator.Send(createAccountCommand, cancellationToken);
             }
             

@@ -1,16 +1,17 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgresPassword = builder.AddParameter("POSTGRES-PASSWORD", "devpassword", secret: true);
+var databaseName = "serverdb";
+
 var postgres = builder
-    .AddPostgres("postgres", password: postgresPassword) // Fixed password for consistent authentication
+    .AddPostgres("postgres")
     // Set the name of the default database to auto-create on container startup.
-    .WithVolume("postgres-data", "/var/lib/postgresql/data") // <-- Volume aplicado CORRETAMENTE ao SERVIDOR
+    .WithEnvironment("POSTGRES_DB", databaseName)
     .WithPgAdmin();
 
-var serverdb = postgres.AddDatabase("serverdb", "serverdb");
-builder
-    .AddProject<Projects.API>("ApiService")
-    .WithReference(serverdb)
-    .WaitFor(serverdb);
+var database = postgres.AddDatabase(databaseName);
+
+builder.AddProject<Projects.Web>("web")
+    .WithReference(database)
+    .WaitFor(database);
 
 builder.Build().Run();

@@ -8,8 +8,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireHost>true</IsAspireHost>
-    <RootNamespace>ServerGame.AppHost</RootNamespace>
-    <AssemblyName>ServerGame.AppHost</AssemblyName>
+    <RootNamespace>GameServer.AppHost</RootNamespace>
+    <AssemblyName>GameServer.AppHost</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,8 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Identity\API\API.csproj" />
+    <ProjectReference Include="..\Web\Web.csproj" />
   </ItemGroup>
-
 
 </Project>

@@ -5,8 +5,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAspireSharedProject>true</IsAspireSharedProject>
-    <RootNamespace>ServerGame.ServiceDefaults</RootNamespace>
-    <AssemblyName>ServerGame.ServiceDefaults</AssemblyName>
+    <RootNamespace>GameServer.ServiceDefaults</RootNamespace>
+    <AssemblyName>GameServer.ServiceDefaults</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

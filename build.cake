@@ -10,7 +10,7 @@ IProcess webProcess = null;
 Task("Build")
     .Does(() => {
         Information("Building project...");
-        DotNetBuild("./ServerGame.sln", new DotNetBuildSettings {
+        DotNetBuild("./GameServer.sln", new DotNetBuildSettings {
             Configuration = configuration
         });
     });
@@ -66,7 +66,7 @@ Task("Test")
         };
 
 
-        DotNetTest("./ServerGame.sln", testSettings);
+        DotNetTest("./GameServer.sln", testSettings);
     });
 
 Teardown(context =>

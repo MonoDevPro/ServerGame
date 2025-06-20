@@ -1,9 +1,11 @@
 using System.Reflection;
 using GameServer.Application.Common.Interfaces.Identity;
 using GameServer.Domain.Constants;
-using GameServer.Infrastructure.Identity.Factories;
-using GameServer.Infrastructure.Identity.Persistence.DbContexts;
-using GameServer.Infrastructure.Identity.Persistence.Entities;
+using GameServer.Infrastructure.Identity.Claims;
+using GameServer.Infrastructure.Services;
+using Identity.Persistence;
+using Identity.Persistence.DbContexts;
+using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +23,12 @@ public static class DependencyInjection
         builder.Services.AddScoped<IIdentityService, IdentityService>();
         
         builder.Services
+            .AddIdentityCore<ApplicationUser>()
+            .AddRoles<ApplicationRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddApiEndpoints();
+        
+        builder.Services
             .AddAuthentication()
             .AddBearerToken(IdentityConstants.BearerScheme);
         
@@ -28,28 +36,8 @@ public static class DependencyInjection
         
         builder.Services.AddAuthorization(options =>
             options.AddPolicy(Policies.CanPurge, policy => policy.RequireRole(Roles.Administrator)));
-        
-        builder.Services
-            .AddIdentityCore<ApplicationUser>()
-            .AddRoles<ApplicationRole>()
-            .AddClaimsPrincipalFactory<ClaimsPrincipalFactory>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddApiEndpoints();
-        
-        var connectionString = builder.Configuration.GetConnectionString("serverdb");
-        Guard.Against.Null(connectionString, message: "Connection string 'serverdb' not found.");
-        
-        builder.Services.AddDbContext<ApplicationDbContext>((sp, opt) =>
-        {
-            opt
-                .UseLoggerFactory(sp.GetRequiredService<ILoggerFactory>())
-                .UseNpgsql(connectionString, npg =>
-                {
-                    npg.MigrationsAssembly(Assembly.GetExecutingAssembly());
-                    npg.EnableRetryOnFailure(3);
-                });
-        });
-        builder.EnrichNpgsqlDbContext<ApplicationDbContext>();
+
+        builder.ConfigureIdentityPersistence();
         
         return builder;
     }

@@ -1,7 +1,7 @@
 using GameServer.Application.Common.Interfaces.Identity;
 using GameServer.Application.Common.Models;
 using GameServer.Infrastructure.Identity.Extensions;
-using GameServer.Infrastructure.Identity.Persistence.Entities;
+using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 

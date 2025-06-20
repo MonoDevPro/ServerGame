@@ -6,7 +6,6 @@ namespace GameServer.Application.Accounts.Queries.Models
 {
     public class AccountDto
     {
-        public long Id { get; set; }
         public bool IsActive { get; set; }
         public AccountType AccountType { get; set; }
         public BanInfoDto? BanInfo { get; set; } = null!;
@@ -20,8 +19,11 @@ namespace GameServer.Application.Accounts.Queries.Models
                 CreateMap<Account, AccountDto>()
                     .ForMember(a => a.Created,
                         opt => opt.MapFrom(src => src.Created.UtcDateTime));
+                
                 CreateMap<BanInfo, BanInfoDto>();
-                CreateMap<LoginInfo, LoginInfoDto>();
+                CreateMap<LoginInfo, LoginInfoDto>()
+                    .ForMember(a => a.LastLoginDate,
+                        opt => opt.MapFrom(src => src.LastLoginDate.UtcDateTime));
             }
         }
     }

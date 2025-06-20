@@ -1,4 +1,5 @@
-﻿using GameServer.Application.Common.Interfaces;
+﻿using GameServer.Application.Accounts.Services;
+using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common.Interfaces.Persistence.Repository;
 using GameServer.Domain.Entities;
 
@@ -6,22 +7,20 @@ namespace GameServer.Application.Accounts.Commands.Create;
 
 public class CreateAccountCommandValidator : AbstractValidator<CreateAccountCommand>
 {
-    private readonly IReaderRepository<Account> _repository;
+    private readonly IAccountService _accountService;
     
     public CreateAccountCommandValidator(
-        IUser user,
-        IReaderRepository<Account> repository)
+        IAccountService accountService)
     {
-        _repository = repository;
+        _accountService = accountService;
         
-        RuleFor(x => user.Id)
-            .NotNull()                   .WithMessage("User ID cannot be null.")
+        RuleFor(x => x)
             .MustAsync(BeUniqueForUser)  .WithMessage("'{PropertyName}' must be unique.")
                                          .WithErrorCode("Unique");
     }
     
-    private async Task<bool> BeUniqueForUser(string? userId, CancellationToken cancellationToken)
+    private async Task<bool> BeUniqueForUser(CreateAccountCommand command, CancellationToken cancellationToken)
     {
-        return !await _repository.ExistsAsync(a => a.CreatedBy == userId, cancellationToken);
+        return !await _accountService.ExistsAsync(cancellationToken);
     }
 }

@@ -6,7 +6,7 @@ namespace GameServer.Domain.Events.Accounts;
 public class AccountLoginFailed : AccountEvent
 {
     public string IpAddress { get; }
-    public DateTime LoginTime { get; }
+    public DateTimeOffset LoginTime { get; }
 
     public AccountLoginFailed(
         Account account,

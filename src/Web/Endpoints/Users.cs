@@ -2,10 +2,11 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using GameServer.Application.Accounts.Queries.GetAccount;
+using GameServer.Application.Accounts.Commands.Create;
+using GameServer.Application.Users.Handlers;
 using GameServer.Domain.Rules;
-using GameServer.Infrastructure.Identity.Persistence.Entities;
 using GameServer.Web.Models;
+using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Authentication.BearerToken;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -19,7 +20,7 @@ namespace GameServer.Web.Endpoints;
 /// Mapeia os endpoints da API de Identidade usando um padrão de grupo de endpoints baseado em classe.
 /// </summary>
 /// <typeparam name="ApplicationUser">O tipo que descreve o usuário.</typeparam>
-public class Users : EndpointGroupBase 
+public class Users : EndpointGroupBase
 {
     public override void Map(WebApplication app)
     {
@@ -27,7 +28,7 @@ public class Users : EndpointGroupBase
 
         // --- Endpoints Públicos ---
         routeGroup.MapPost(Register, "/register");
-        routeGroup.MapPost(Login, "/login");
+        routeGroup.MapPost(Authenticate, "/login");
         routeGroup.MapPost(Refresh, "/refresh");
         routeGroup.MapPost(ConfirmEmail, "/confirmEmail");
         routeGroup.MapPost(ResendConfirmationEmail, "/resendConfirmationEmail");
@@ -49,7 +50,8 @@ public class Users : EndpointGroupBase
         UserManager<ApplicationUser> userManager,
         IUserStore<ApplicationUser> userStore,
         IEmailSender<ApplicationUser> emailSender,
-        LinkGenerator linkGenerator)
+        LinkGenerator linkGenerator,
+        IPublisher publisher)
     {
         if (!userManager.SupportsUserEmail)
         {
@@ -80,19 +82,21 @@ public class Users : EndpointGroupBase
         {
             return CreateValidationProblem(result);
         }
+        
+        await publisher.Publish(new UserCreatedNotification(user.Id), CancellationToken.None);
 
         await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email, isChange: false);
         return TypedResults.Ok();
     }
 
     // POST /login
-    private async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Login(
+    private async Task<Results<Ok<AccessTokenResponse>, EmptyHttpResult, ProblemHttpResult>> Authenticate(
         [FromBody] LoginRequest login,
         [FromQuery] bool? useCookies,
         [FromQuery] bool? useSessionCookies,
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
-        ISender sender)
+        IPublisher publisher)
     {
         var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
             var isPersistent = (useCookies == true) && (useSessionCookies != true);
@@ -127,7 +131,7 @@ public class Users : EndpointGroupBase
                     return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
                 
                 username = await userManager.GetUserNameAsync(user);
-            } 
+            }
             else
             {
                 return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
@@ -150,13 +154,10 @@ public class Users : EndpointGroupBase
             }
 
             if (!result.Succeeded)
-            {
                 return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
-            }
-
-            // Se o login foi bem-sucedido, obtemos o usuário autenticado,
-            // caso contrário a conta vaai ser criada no primeiro login e retornamos o resultado de login.
-            await sender.Send(new GetAccountQuery());
+            
+            // Aqui você dispara o comando — o FluentValidation já vai rodar o CreateAccountCommandValidator
+            await publisher.Publish(new UserAuthenticatedNotification(), CancellationToken.None);
 
             // The signInManager already produced the needed response in the form of a cookie or bearer token.
             return TypedResults.Empty;

@@ -15,7 +15,7 @@ public sealed class NotificationDispatcher<TNotification>(IMediator mediator, IL
         {
             try
             {
-                logger.LogDebug("Dispatching notification: {EventType}", @event.GetType().Name);
+                logger.LogInformation("Dispatching notification: {EventType}", @event.GetType().Name);
                 await mediator.Publish(@event, cancellationToken);
             }
             catch (Exception ex)

@@ -29,6 +29,11 @@ public class GetAccountQueryHandler(
             
             return mapper.Map<AccountDto>(account);
         }
+        catch (NotFoundException ex)
+        {
+            // Converter KeyNotFoundException para NotFoundException que o endpoint sabe tratar
+            throw new NotFoundException(userId, $"Account for user '{userId}' not found. Please login first.", ex);
+        }
         catch (Exception ex)
         {
             throw new Exception($"Error retrieving account for user '{userId}': {ex.Message}", ex);

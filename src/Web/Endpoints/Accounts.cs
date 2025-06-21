@@ -20,9 +20,9 @@ public class Accounts : EndpointGroupBase
             .MapPost(Login, "/login"); // novo endpoint
     }
 
-    private async Task<Results<Ok<AccountDto>, NotFound>> Get(
+    private async Task<Results<Ok<AccountDto>, NotFound, ProblemHttpResult>> Get(
         ISender sender,
-        IUser user)   // ← aqui
+        IUser user)
     {
         try
         {
@@ -37,9 +37,17 @@ public class Accounts : EndpointGroupBase
         {
             return TypedResults.NotFound();
         }
-        catch (DomainException)
+        catch (DomainException ex)
         {
-            return TypedResults.NotFound();
+            return TypedResults.Problem(
+                detail: ex.Message,
+                statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (Exception ex)
+        {
+            return TypedResults.Problem(
+                detail: $"Erro ao obter dados da conta: {ex.Message}",
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 

@@ -8,6 +8,7 @@
     <MicrosoftExtensionsVersion>9.0.6</MicrosoftExtensionsVersion>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.6" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Abstractions" Version="$(EfcoreVersion)" />
     <PackageVersion Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="$(AspireVersion)" />
     <PackageVersion Include="Aspire.Hosting.PostgreSQL" Version="$(AspireVersion)" />

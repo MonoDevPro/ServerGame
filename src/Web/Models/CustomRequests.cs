@@ -6,6 +6,8 @@ public record LoginRequest(string EmailOrUsername, string Password, string? TwoF
 
 public record RefreshRequest(string RefreshToken);
 
+public record LogoutRequest(string RefreshToken);
+
 public record ResendConfirmationEmailRequest(string Email);
 
 public record ForgotPasswordRequest(string Email);

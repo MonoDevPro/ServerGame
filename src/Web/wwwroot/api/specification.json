@@ -494,6 +494,24 @@
           }
         ]
       }
+    },
+    "/api/Users/manage/logout": {
+      "post": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
     }
   },
   "components": {

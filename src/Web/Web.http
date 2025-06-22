@@ -1,139 +1,80 @@
-﻿# For more info on HTTP files go to https://aka.ms/vs/httpfile
-@Web_HostAddress = https://localhost:5001
+﻿### Teste Completo da API - Endpoints de Identity e Account
+### Configure as variáveis no arquivo .http.env ou substitua {{variable}} pelos valores
 
-@Email=administrator@localhost
-@Password=Administrator1!
-@BearerToken=<YourToken>
+@host = https://localhost:5001
+@accessToken = CfDJ8G4EmjCP9CdGuLmFSbx3QyiUk9aCWtSzFxa7xqs7mSdOLUQE9aJ2--EkuFE428jBcC3ZDrFM_9_6wJVeqwSyJ3qQBhlJ_mg8PZYnSAKw3NPR8pPgM6_g0vMkyMo9e2ZyPcBZt2djHagGGrfaXY-iygh1IRSb2HFr-tX1PPSV2r5BmabAqvi9KClOtn6SgOcrcvIJhU-HuB3awF-lK5DMSjDTZutv-mcToTabwYKnXTw03-OBXyuoVKu8DFt_HCZ90KvAVO8Cz5IbLYIOQ9YeHls_SkBcLAU0UJMnptWFAwyI4rHPWm5kC5ryu-fCCl9e4kzxowKEoUn6abwNq7PHTmiDNcQg5iWYMHYoO5Y-1axHk7YUxh6uEiXQAnIDbsy-dDIvr85jMnkpZkKFFUK_bBhk-OZAUYELYj8Zu2-BdxJAF5I9rPX2-8Cmj6rNpja4N3hOxrBRk5TidvEVrH4jH8R7-UoDlmYR5tpRr53D62Ivakz0rsSrts5vqPHKfBrrwB0w4sbJp3KwXtl1yOUmQ1mYHuqbiJumBbc2-eqgWwcr_H6ESQflG1DL8B_rPadQirCBcq_tCbVGq_uZ7rlA5yOdvGBF7pm9Z2HRdCGoFwLMFNOhddLy28DM60yeXLblHGal_Rf9ozwPhaFbioAXrh_66sva9FHa637g0m5PEGuIILYLPvL7GKFYLCF2JP3MNg
+@refreshToken = CfDJ8G4EmjCP9CdGuLmFSbx3Qyj9EZnDLqWl1hZ6KoWZ6eWt7rw-ArTX1iQCaeQwFMbWKk4SlyboLNhif12UcbSpMGo5mt51donqARUXz-Sxgu_6uEzr5DLJVXhYplqWOacu1XaNz-mw09FnvlnTJC5hASLtqk9PNoZhra6ZQvM2e8SXxv3nk_VJtaAyU5YnTY2PGrEjvcFLpBsaVCeaNyHwUQb0s0dNOwarmxDaqF39h9WwrIglw06sOZkPV5fn6GDrnUxheaYJa8HyyD0cUAid592Lhi8WFwXQKsk4rLLSrVTGgeK-EcipZ2pRJfHPMiAE4tBvHxVHqZr6IBuhbwk0-WEhzqwFycxCiYu_wwbTgT6pSr3WNdS1F0PAuaebFk0LLt10B2gUTU2MY66V36p9hQr4yLLQ2i87svvyb-5VUbPazkGY418Ehz0B0FDjWUWkVu90KOtzyiNaQvoS-0Uk4V8byGjSSP3viJ-vfuyTjIAsbZBiqKuhZHSUo28zgbV_l8JFiBm3ZmReifoveAiMYQSknaD5lK-xdLKZQIr8ps8pOh49GS9PU5dN0UZJFfncLOpuV1-IgdfuH1dLteWXSvHsZkxz2pEInyBhca4lRdxIK0tRnta-_nb8EVbsPshgD1tt3lJCHuFIXq-I0jF9obhiufFRRYIJ-Y5SL5aCYbYQd0m8FwHZlYhh6-VhcJyPcA
+@userId = 
+@email = test4@example.com
+@username = test4user
+@password = Test4123!@#
 
-# POST Users Register
-POST {{Web_HostAddress}}/api/Users/Register
+### =================================
+### ENDPOINTS DE IDENTITY (PÚBLICOS)
+### =================================
+
+### 1. Registrar novo usuário
+POST {{host}}/api/Users/register
 Content-Type: application/json
 
 {
-  "email": "{{Email}}",
-  "password": "{{Password}}"
+  "username": "{{username}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
 }
 
 ###
 
-# POST Users Login
-POST {{Web_HostAddress}}/api/Users/Login
+### 2. Login com email
+POST {{host}}/api/Users/login
 Content-Type: application/json
 
 {
-  "email": "{{Email}}",
-  "password": "{{Password}}"
+  "emailOrUsername": "{{email}}",
+  "password": "{{password}}"
 }
 
 ###
 
-# POST Users Refresh
-POST {{Web_HostAddress}}/api/Users/Refresh
-Authorization: Bearer {{BearerToken}}
+### 3. Login com username
+POST {{host}}/api/Users/login
 Content-Type: application/json
 
 {
-  "refreshToken": ""
+  "emailOrUsername": "{{username}}",
+  "password": "{{password}}"
+}
+
+### 5. Refresh token
+POST {{host}}/api/Users/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
 }
 
 ###
 
-# GET WeatherForecast
-GET {{Web_HostAddress}}/api/WeatherForecasts
-Authorization: Bearer {{BearerToken}}
-
-###
-
-# GET TodoLists
-GET {{Web_HostAddress}}/api/TodoLists
-Authorization: Bearer {{BearerToken}}
-
-###
-
-# POST TodoLists
-POST {{Web_HostAddress}}/api/TodoLists
-Authorization: Bearer {{BearerToken}}
+### 6. LOGOUT - Invalidar todos os tokens (agora é autenticado)
+POST {{host}}/api/Users/manage/logout
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-// CreateTodoListCommand
-{
-  "Title": "Backlog"
-}
+### ===============================
+### ENDPOINTS DE ACCOUNT/GAME
+### ===============================
 
-###
+### 17. Obter contas do usuário (se implementado)
+GET {{host}}/api/accounts
+Authorization: Bearer {{accessToken}}
 
-# PUT TodoLists
-PUT {{Web_HostAddress}}/api/TodoLists/1
-Authorization: Bearer {{BearerToken}}
+##
+### 18. Criar nova conta (se implementado)
+POST {{host}}/api/accounts/login
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
-// UpdateTodoListCommand
 {
-  "Id": 1,
-  "Title": "Product Backlog"
+  "emailOrUsername": "{{email}}",
+  "password": "{{password}}"
 }
-
-###
-
-# DELETE TodoLists
-DELETE {{Web_HostAddress}}/api/TodoLists/1
-Authorization: Bearer {{BearerToken}}
-
-###
-
-# GET TodoItems
-@PageNumber = 1
-@PageSize = 10
-GET {{Web_HostAddress}}/api/TodoItems?ListId=1&PageNumber={{PageNumber}}&PageSize={{PageSize}}
-
-Authorization: Bearer {{BearerToken}}
-
-###
-
-# POST TodoItems
-POST {{Web_HostAddress}}/api/TodoItems
-Authorization: Bearer {{BearerToken}}
-Content-Type: application/json
-
-// CreateTodoItemCommand
-{
-  "ListId": 1,
-  "Title": "Eat a burrito 🌯"
-}
-
-###
-
-#PUT TodoItems UpdateItemDetails
-PUT {{Web_HostAddress}}/api/TodoItems/UpdateItemDetails?Id=1
-Authorization: Bearer {{BearerToken}}
-Content-Type: application/json
-
-// UpdateTodoItemDetailCommand
-{
-  "Id": 1,
-  "ListId": 1,
-  "Priority": 3,
-  "Note": "This is a good idea!"
-}
-
-###
-
-# PUT TodoItems
-PUT {{Web_HostAddress}}/api/TodoItems/1
-Authorization: Bearer {{BearerToken}}
-Content-Type: application/json
-
-// UpdateTodoItemCommand
-{
-  "Id": 1,
-  "Title": "Eat a yummy burrito 🌯",
-  "Done": true
-}
-
-###
-
-# DELETE TodoItem
-DELETE {{Web_HostAddress}}/api/TodoItems/1
-Authorization: Bearer {{BearerToken}}
-
-###

@@ -1,12 +1,12 @@
-﻿using GameServer.Application.Accounts.Services;
+using GameServer.Application.Accounts.Services;
 
-namespace GameServer.Application.Accounts.Commands.Delete;
+namespace GameServer.Application.Accounts.Commands.Login;
 
-public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountCommand>
+public class LoginAccountCommandValidator : AbstractValidator<LoginAccountCommand>
 {
     private readonly IAccountService _accountService;
 
-    public DeleteAccountCommandValidator(IAccountService accountService)
+    public LoginAccountCommandValidator(IAccountService accountService)
     {
         _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
 
@@ -16,7 +16,7 @@ public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountComm
             .WithErrorCode("NotFound");
     }
 
-    private async Task<bool> BeExistsEntity(DeleteAccountCommand command, CancellationToken cancellationToken)
+    private async Task<bool> BeExistsEntity(LoginAccountCommand command, CancellationToken cancellationToken)
     {
         return await _accountService.ExistsAsync(cancellationToken);
     }

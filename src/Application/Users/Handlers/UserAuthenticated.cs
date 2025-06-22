@@ -1,22 +1,24 @@
-using GameServer.Application.Common.Interfaces;
-using GameServer.Domain.Events.Accounts;
+using GameServer.Application.Accounts.Commands.Create;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Users.Handlers;
 
 public record UserAuthenticatedNotification : INotification;
 
-public class UserLoggedInHandler(IUser user, ILogger<UserLoggedInHandler> logger)
+public record UserLoggedOutNotification : INotification;
+
+public class UserLoggedInHandler(ISender sender, ILogger<UserLoggedInHandler> logger)
     : INotificationHandler<UserAuthenticatedNotification>
 {
-    public Task Handle(UserAuthenticatedNotification notification, CancellationToken cancellationToken)
+    public async Task Handle(UserAuthenticatedNotification notification, CancellationToken cancellationToken)
     {
         // Log the user login event
-        logger.LogInformation($"User {user} authenticated event received.");
+        logger.LogInformation($"User authenticated event received.");
 
         // Here you can add additional logic, such as updating user status, logging, etc.
         // For example, you might want to update the last login time or send a welcome message.
 
-        return Task.CompletedTask;
+        // Create account in domain or other services if needed
+        await sender.Send(new CreateAccountCommand(), cancellationToken);
     }
 }

@@ -2,9 +2,6 @@ using GameServer.Domain.Events.Accounts.Base;
 
 namespace GameServer.Domain.Events.Accounts;
 
-public class AccountDeactivatedEvent : AccountEvent
+public class AccountDeactivatedEvent(Account account) : AccountEvent(account)
 {
-    public AccountDeactivatedEvent(Account account) : base(account)
-    {
-    }
 }

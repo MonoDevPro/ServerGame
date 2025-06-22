@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using GameServer.Application.Accounts.Commands.Create;
 using GameServer.Application.Users.Handlers;
 using GameServer.Domain.Rules;
 using GameServer.Web.Models;
@@ -57,7 +56,7 @@ public class Users : EndpointGroupBase
         {
             throw new NotSupportedException($"{nameof(ApplicationUser)} requires a user store with email support.");
         }
-            
+
         var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
         var email = registration.Email;
 
@@ -67,7 +66,7 @@ public class Users : EndpointGroupBase
         }
 
         var userName = registration.Username;
-            
+
         if (string.IsNullOrEmpty(userName) || !UsernameRule.IsValid(userName))
         {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidUserName(userName)));
@@ -82,7 +81,7 @@ public class Users : EndpointGroupBase
         {
             return CreateValidationProblem(result);
         }
-        
+
         await publisher.Publish(new UserCreatedNotification(user.Id), CancellationToken.None);
 
         await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email, isChange: false);
@@ -99,70 +98,70 @@ public class Users : EndpointGroupBase
         IPublisher publisher)
     {
         var useCookieScheme = (useCookies == true) || (useSessionCookies == true);
-            var isPersistent = (useCookies == true) && (useSessionCookies != true);
-            signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
+        var isPersistent = (useCookies == true) && (useSessionCookies != true);
+        signInManager.AuthenticationScheme = useCookieScheme ? IdentityConstants.ApplicationScheme : IdentityConstants.BearerScheme;
 
-            
-            if (!UsernameRule.IsValid(login.EmailOrUsername) &&
-                !EmailRule.IsValid(login.EmailOrUsername))
-            {
-                return TypedResults.Empty;
-            }
-            
-            var username = UsernameRule.IsValid(login.EmailOrUsername) 
-                ? login.EmailOrUsername.Trim().ToLowerInvariant()
-                : null;
-            var email = EmailRule.IsValid(login.EmailOrUsername) 
-                ? login.EmailOrUsername.Trim().ToLowerInvariant()
-                : null;
-            
-            if (email is not null)
-            {
-                var user = await userManager.FindByEmailAsync(email);
-                if (user is null)
-                    return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
-                
-                username = await userManager.GetUserNameAsync(user);
-            }
-            else if (username is not null)
-            {
-                var user = await userManager.FindByNameAsync(username);
-                if (user is null)
-                    return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
-                
-                username = await userManager.GetUserNameAsync(user);
-            }
-            else
-            {
-                return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
-            }
-            
-            Guard.Against.NullOrEmpty(username, nameof(login.EmailOrUsername));
-            
-            var result = await signInManager.PasswordSignInAsync(username, login.Password, isPersistent, lockoutOnFailure: true);
 
-            if (result.RequiresTwoFactor)
-            {
-                if (!string.IsNullOrEmpty(login.TwoFactorCode))
-                {
-                    result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
-                }
-                else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
-                {
-                    result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
-                }
-            }
-
-            if (!result.Succeeded)
-                return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
-            
-            // Aqui você dispara o comando — o FluentValidation já vai rodar o CreateAccountCommandValidator
-            await publisher.Publish(new UserAuthenticatedNotification(), CancellationToken.None);
-
-            // The signInManager already produced the needed response in the form of a cookie or bearer token.
+        if (!UsernameRule.IsValid(login.EmailOrUsername) &&
+            !EmailRule.IsValid(login.EmailOrUsername))
+        {
             return TypedResults.Empty;
+        }
+
+        var username = UsernameRule.IsValid(login.EmailOrUsername)
+            ? login.EmailOrUsername.Trim().ToLowerInvariant()
+            : null;
+        var email = EmailRule.IsValid(login.EmailOrUsername)
+            ? login.EmailOrUsername.Trim().ToLowerInvariant()
+            : null;
+
+        if (email is not null)
+        {
+            var user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+                return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
+
+            username = await userManager.GetUserNameAsync(user);
+        }
+        else if (username is not null)
+        {
+            var user = await userManager.FindByNameAsync(username);
+            if (user is null)
+                return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
+
+            username = await userManager.GetUserNameAsync(user);
+        }
+        else
+        {
+            return TypedResults.Problem("Invalid email or username.", statusCode: StatusCodes.Status401Unauthorized);
+        }
+
+        Guard.Against.NullOrEmpty(username, nameof(login.EmailOrUsername));
+
+        var result = await signInManager.PasswordSignInAsync(username, login.Password, isPersistent, lockoutOnFailure: true);
+
+        if (result.RequiresTwoFactor)
+        {
+            if (!string.IsNullOrEmpty(login.TwoFactorCode))
+            {
+                result = await signInManager.TwoFactorAuthenticatorSignInAsync(login.TwoFactorCode, isPersistent, rememberClient: isPersistent);
+            }
+            else if (!string.IsNullOrEmpty(login.TwoFactorRecoveryCode))
+            {
+                result = await signInManager.TwoFactorRecoveryCodeSignInAsync(login.TwoFactorRecoveryCode);
+            }
+        }
+
+        if (!result.Succeeded)
+            return TypedResults.Problem(result.ToString(), statusCode: StatusCodes.Status401Unauthorized);
+
+        // Aqui você dispara o comando — o FluentValidation já vai rodar o CreateAccountCommandValidator
+        await publisher.Publish(new UserAuthenticatedNotification(), CancellationToken.None);
+
+        // The signInManager already produced the needed response in the form of a cookie or bearer token.
+        return TypedResults.Empty;
     }
-    
+
     // POST /refresh
     private async Task<Results<Ok<AccessTokenResponse>, UnauthorizedHttpResult, SignInHttpResult, ChallengeHttpResult>> Refresh(
         [FromBody] RefreshRequest refreshRequest,
@@ -192,9 +191,7 @@ public class Users : EndpointGroupBase
         UserManager<ApplicationUser> userManager)
     {
         if (await userManager.FindByIdAsync(userId) is not { } user)
-        {
             return TypedResults.Unauthorized();
-        }
 
         try
         {
@@ -207,9 +204,7 @@ public class Users : EndpointGroupBase
 
         IdentityResult result;
         if (string.IsNullOrEmpty(changedEmail))
-        {
             result = await userManager.ConfirmEmailAsync(user, code);
-        }
         else
         {
             result = await userManager.ChangeEmailAsync(user, changedEmail, code);
@@ -220,13 +215,11 @@ public class Users : EndpointGroupBase
         }
 
         if (!result.Succeeded)
-        {
             return TypedResults.Unauthorized();
-        }
 
         return TypedResults.Text("Thank you for confirming your email.");
     }
-    
+
     // POST /resendConfirmationEmail
     private async Task<Ok> ResendConfirmationEmail(
         [FromBody] ResendConfirmationEmailRequest resendRequest,
@@ -243,7 +236,7 @@ public class Users : EndpointGroupBase
         await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, resendRequest.Email);
         return TypedResults.Ok();
     }
-    
+
     // POST /forgotPassword
     private async Task<Results<Ok, ValidationProblem>> ForgotPassword(
         [FromBody] ForgotPasswordRequest resetRequest,
@@ -292,7 +285,7 @@ public class Users : EndpointGroupBase
 
         return TypedResults.Ok();
     }
-    
+
     // GET /manage/info
     private async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> GetInfo(
         ClaimsPrincipal claimsPrincipal,
@@ -304,7 +297,7 @@ public class Users : EndpointGroupBase
         }
         return TypedResults.Ok(await CreateInfoResponseAsync(user, userManager));
     }
-    
+
     // POST /manage/info
     private async Task<Results<Ok<InfoResponse>, ValidationProblem, NotFound>> UpdateInfo(
         ClaimsPrincipal claimsPrincipal,
@@ -323,7 +316,7 @@ public class Users : EndpointGroupBase
         {
             return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
         }
-        
+
         if (!string.IsNullOrEmpty(infoRequest.NewPassword))
         {
             if (string.IsNullOrEmpty(infoRequest.OldPassword))
@@ -345,7 +338,7 @@ public class Users : EndpointGroupBase
                 await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, infoRequest.NewEmail, isChange: true);
             }
         }
-        
+
         return TypedResults.Ok(await CreateInfoResponseAsync(user, userManager));
     }
 
@@ -387,14 +380,14 @@ public class Users : EndpointGroupBase
         {
             await userManager.ResetAuthenticatorKeyAsync(user);
         }
-        
+
         string[]? recoveryCodes = null;
         if (tfaRequest.ResetRecoveryCodes || (tfaRequest.Enable == true && await userManager.CountRecoveryCodesAsync(user) == 0))
         {
             var recoveryCodesEnumerable = await userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 10);
             recoveryCodes = recoveryCodesEnumerable?.ToArray();
         }
-        
+
         if (tfaRequest.ForgetMachine)
         {
             await signInManager.ForgetTwoFactorClientAsync();
@@ -437,7 +430,7 @@ public class Users : EndpointGroupBase
         {
             routeValues.Add("changedEmail", email);
         }
-        
+
         // Usamos o nome do endpoint definido em Map() para gerar a URL
         var confirmEmailUrl = linkGenerator.GetUriByName(context, "ConfirmEmail", routeValues)
                               ?? throw new NotSupportedException("Could not find endpoint named 'ConfirmEmail'.");
@@ -471,7 +464,7 @@ public class Users : EndpointGroupBase
         }
         return TypedResults.ValidationProblem(errorDictionary);
     }
-    
+
     private static async Task<InfoResponse> CreateInfoResponseAsync(ApplicationUser user, UserManager<ApplicationUser> userManager)
     {
         var username = await userManager.GetUserNameAsync(user) ??

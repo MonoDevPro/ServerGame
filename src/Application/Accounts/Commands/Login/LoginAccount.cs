@@ -13,7 +13,6 @@ public record LoginAccountCommand : IRequest;
 public class LoginAccountCommandHandler(
     IAccountService accountService,
     IUser user,
-    ISender sender,
     ILogger<LoginAccountCommandHandler> logger)
     : IRequestHandler<LoginAccountCommand>
 {
@@ -21,15 +20,12 @@ public class LoginAccountCommandHandler(
     {
         try
         {
-            // 1) Se não existir, crie sem salvar ainda
-            await sender.Send(new CreateAccountCommand(), ct);
-
             // 2) Recupere EM TRACKING a conta (nova ou existente)
             var account = await accountService.GetForUpdateAsync(ct);
-            
+
             // 3) Faça o login
             account.Login(LoginInfo.Create(user.IpAddress!, DateTimeOffset.UtcNow));
-            
+
             // 4) Retorne e deixe o UnitOfWorkBehavior salvar tudo de uma vez
         }
         catch (DomainException ex)

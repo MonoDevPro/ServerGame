@@ -25,20 +25,20 @@ public class AccountService(
             .ExistsAsync(a => a.CreatedBy == user.Id,
                 cancellationToken: cancellationToken);
     }
-    
+
     public async Task<Account> GetReadOnlyAsync(CancellationToken cancellationToken = default) =>
         await ReaderAccountRepository
             .QuerySingleAsync<Account>(
                 predicate: a => a.CreatedBy == user.Id,
                 trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken) 
+                cancellationToken: cancellationToken)
         ?? throw new KeyNotFoundException($"Account with userId '{user.Id}' not found.");
     public async Task<Account> GetForUpdateAsync(CancellationToken cancellationToken = default) =>
         await ReaderAccountRepository
             .QuerySingleAsync<Account>(
                 predicate: a => a.CreatedBy == user.Id,
                 trackingType: TrackingType.Tracking,
-                cancellationToken: cancellationToken) 
+                cancellationToken: cancellationToken)
         ?? throw new KeyNotFoundException($"Account with userId '{user.Id}' not found.");
 
     public async Task<AccountDto> GetDtoAsync(CancellationToken cancellationToken = default)
@@ -48,14 +48,14 @@ public class AccountService(
                        predicate: a => a.CreatedBy == user.Id,
                        selector: a => mapper.Map<AccountDto>(a),
                        trackingType: TrackingType.NoTracking,
-                       cancellationToken: cancellationToken) 
+                       cancellationToken: cancellationToken)
                ?? throw new NotFoundException(
-                   user.Id ?? String.Empty, 
-                   nameof(user.Id) , 
+                   user.Id ?? String.Empty,
+                   nameof(user.Id),
                    new DomainException($"Account with userId '{user.Id}' not found."));
     }
-    
-    public async Task<Account> CreateAsync(CancellationToken cancellationToken = default) 
+
+    public async Task<Account> CreateAsync(CancellationToken cancellationToken = default)
         => await WriterAccountRepository.AddAsync(Account.Create(), cancellationToken);
 
     public async Task PurgeAsync(CancellationToken cancellationToken = default)
@@ -64,7 +64,7 @@ public class AccountService(
             .QueryListAsync<Account>(
                 trackingType: TrackingType.Tracking,
                 cancellationToken: cancellationToken);
-            
+
         accounts.ForEach(a => a.Deactivate());
     }
 

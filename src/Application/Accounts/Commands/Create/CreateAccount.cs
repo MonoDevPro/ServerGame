@@ -1,5 +1,4 @@
 ﻿using GameServer.Application.Accounts.Services;
-using GameServer.Domain.Entities;
 using GameServer.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
@@ -21,9 +20,9 @@ public class CreateAccountCommandHandler(
         {
             if (await accountService.ExistsAsync(cancellationToken))
                 return;
-            
+
             var account = await accountService.CreateAsync(cancellationToken);
-            
+
             logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
         }
         catch (DomainException ex)

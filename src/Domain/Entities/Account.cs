@@ -11,7 +11,7 @@ public class Account : BaseAuditableEntity
     public LoginInfo? LastLoginInfo { get; private set; }
 
     protected Account() { }
-    
+
     public static Account Create()
     {
         var account = new Account
@@ -19,10 +19,10 @@ public class Account : BaseAuditableEntity
             IsActive = true
         };
         account.AddDomainEvent(new AccountCreatedEvent(account));
-        
+
         return account;
     }
-    
+
     // Status
     public bool IsStaff() => AccountType == AccountType.Staff;
     public bool IsAdministrator() => AccountType == AccountType.Administrator;
@@ -31,7 +31,7 @@ public class Account : BaseAuditableEntity
     public void Activate()
     {
         if (IsActive) return;
-        
+
         IsActive = true;
         AddDomainEvent(new AccountActivatedEvent(this));
     }
@@ -39,7 +39,7 @@ public class Account : BaseAuditableEntity
     public void Deactivate()
     {
         if (!IsActive) return;
-        
+
         IsActive = false;
         AddDomainEvent(new AccountDeactivatedEvent(this));
     }

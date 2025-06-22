@@ -480,3 +480,4 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 .azure
+/.idea/.idea.GameServer/.idea/dataSources.xml

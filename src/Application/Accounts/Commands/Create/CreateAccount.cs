@@ -12,17 +12,19 @@ public class CreateAccountCommandHandler(
     ILogger<CreateAccountCommandHandler> logger)
     : IRequestHandler<CreateAccountCommand>
 {
+    /// <summary>
+    /// Cria uma conta se ainda não existir. Idempotente.
+    /// </summary>
     public async Task Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            // Criar entidade de domínio
-            var entity = Account.Create();
-
-            // Salvar
-            entity = await accountService.CreateAsync(entity, cancellationToken);
+            if (await accountService.ExistsAsync(cancellationToken))
+                return;
             
-            logger.LogInformation("Conta criada com sucesso: {UserId}", entity.CreatedBy);
+            var account = await accountService.CreateAsync(cancellationToken);
+            
+            logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
         }
         catch (DomainException ex)
         {

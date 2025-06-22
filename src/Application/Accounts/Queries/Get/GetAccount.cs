@@ -8,35 +8,20 @@ namespace GameServer.Application.Accounts.Queries.Get;
 public record GetAccountQuery : IRequest<AccountDto>;
 
 public class GetAccountQueryHandler(
-    IUser user,
-    IAccountService accountService,
-    IMapper mapper)
-    : IRequestHandler<GetAccountQuery, AccountDto>
+    IAccountService accountService) : IRequestHandler<GetAccountQuery, AccountDto>
 {
-    public async Task<AccountDto> Handle(GetAccountQuery request, CancellationToken cancellationToken)
+    public async Task<AccountDto> Handle(GetAccountQuery request, CancellationToken ct)
     {
-        var userId = user.Id;
-        Guard.Against.Null(userId, nameof(userId),
-            "User ID is null or user name could not be retrieved.", () => new Exception("User ID is null or user name could not be retrieved."));
         try
         {
-            var account = await accountService.GetAsync(cancellationToken);
-            
-            // Se mesmo após tentar criar ainda está nulo, então realmente há um problema
-            Guard.Against.Null(account, nameof(account),
-                $"Failed to get account for user id '{userId}'.", 
-                () => new DomainException($"Failed to get account for user id '{userId}'."));
-            
-            return mapper.Map<AccountDto>(account);
-        }
-        catch (NotFoundException ex)
-        {
-            // Converter KeyNotFoundException para NotFoundException que o endpoint sabe tratar
-            throw new NotFoundException(userId, $"Account for user '{userId}' not found. Please login first.", ex);
+            if (await accountService.ExistsAsync(ct) == false)
+                throw new UnauthorizedAccessException("Account not found. Please login first.");
+
+            return await accountService.GetDtoAsync(ct);
         }
         catch (Exception ex)
         {
-            throw new Exception($"Error retrieving account for user '{userId}': {ex.Message}", ex);
+            throw new Exception($"Error retrieving account: {ex.Message}", ex);
         }
     }
 }

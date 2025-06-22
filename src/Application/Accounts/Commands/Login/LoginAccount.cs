@@ -17,20 +17,20 @@ public class LoginAccountCommandHandler(
     ILogger<LoginAccountCommandHandler> logger)
     : IRequestHandler<LoginAccountCommand>
 {
-    public async Task Handle(LoginAccountCommand request, CancellationToken cancellationToken)
+    public async Task Handle(LoginAccountCommand request, CancellationToken ct)
     {
         try
         {
-            // OBS: Criar a conta apenas se não existir ao logar pela primeira vez.
-            if (!await accountService.ExistsAsync(cancellationToken))
-                await sender.Send(new CreateAccountCommand(), cancellationToken);
-                
-            var account = await accountService.GetAsync(cancellationToken);
+            // 1) Se não existir, crie sem salvar ainda
+            await sender.Send(new CreateAccountCommand(), ct);
+
+            // 2) Recupere EM TRACKING a conta (nova ou existente)
+            var account = await accountService.GetForUpdateAsync(ct);
             
-            account.Login(LoginInfo.Create(user.IpAddress!, DateTimeOffset.Now));
+            // 3) Faça o login
+            account.Login(LoginInfo.Create(user.IpAddress!, DateTimeOffset.UtcNow));
             
-            await accountService.UpdateAsync(account, cancellationToken);
-            
+            // 4) Retorne e deixe o UnitOfWorkBehavior salvar tudo de uma vez
         }
         catch (DomainException ex)
         {

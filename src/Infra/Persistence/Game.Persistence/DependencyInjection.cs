@@ -6,6 +6,8 @@ using Game.Persistence.Interceptors;
 using Game.Persistence.Repositories;
 using Game.Persistence.Repositories.Reader;
 using Game.Persistence.Repositories.Writer;
+using Game.Persistence.UnitOfWork;
+using GameServer.Application.Common.Interfaces.Persistence;
 using GameServer.Application.Common.Interfaces.Persistence.Repository;
 using GameServer.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +30,8 @@ public static class DependencyInjection
         
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, NotificationInterceptor>();
+
+        builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
         
         builder.Services.AddHostedService<DataSeedHosted>();
         

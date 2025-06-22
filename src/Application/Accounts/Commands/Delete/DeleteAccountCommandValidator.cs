@@ -1,28 +1,23 @@
-﻿using GameServer.Application.Common.Interfaces.Persistence.Repository;
-using GameServer.Domain.Entities;
+﻿using GameServer.Application.Accounts.Services;
 
 namespace GameServer.Application.Accounts.Commands.Delete;
 
 public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountCommand>
 {
-    private readonly IReaderRepository<Account> _repository;
+    private readonly IAccountService _accountService;
     
-    public DeleteAccountCommandValidator(IReaderRepository<Account> repository)
+    public DeleteAccountCommandValidator(IAccountService accountService)
     {
-        _repository = repository;
+        _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
 
         RuleFor(v => v)
-            .NotEmpty()
             .MustAsync(BeExistsEntity)
             .WithMessage("Account with the specified userId does not exists.")
             .WithErrorCode("NotFound");
     }
     
-    public async Task<bool> BeExistsEntity(DeleteAccountCommand command, CancellationToken cancellationToken)
+    private async Task<bool> BeExistsEntity(DeleteAccountCommand command, CancellationToken cancellationToken)
     {
-        return await _repository.ExistsAsync(a => 
-                a.CreatedBy        == command.userId ,
-                cancellationToken
-        );
+        return await _accountService.ExistsAsync(cancellationToken);
     }
 }

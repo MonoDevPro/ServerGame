@@ -13,24 +13,15 @@ namespace GameServer.Application.Accounts.Commands.Update;
 public record UpdateAccountCommand(AccountDto AccountDto) : IRequest;
 
 public class UpdateAccountCommandHandler(
-    IAccountService accountService,
     ILogger<UpdateAccountCommandHandler> logger)
     : IRequestHandler<UpdateAccountCommand>
 {
-    public async Task Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
+    public Task Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
     {
         try
         {
-            // Retrieve the existing account
-            var existingAccount = await accountService.GetAsync(cancellationToken);
-            if (existingAccount == null)
-                throw new ValidationException($"Account with User does not exist.");
-
-            // Update the account properties
-            existingAccount = existingAccount.Update(request.AccountDto);
-
-            // Save the updated account
-            await accountService.UpdateAsync(existingAccount, cancellationToken);
+            // TODO: Precisamos atualizar com handlers com objetivos específicos, como UpdateAccountNameCommand, UpdateAccountEmailCommand, etc.
+            return Task.CompletedTask;
         }
         catch (Exception ex)
         {

@@ -30,8 +30,8 @@ public class Account : BaseAuditableEntity
     // Ativar / Desativar
     public void Activate()
     {
-        if (IsActive) 
-            return;
+        if (IsActive) return;
+        
         IsActive = true;
         AddDomainEvent(new AccountActivatedEvent(this));
     }
@@ -39,6 +39,7 @@ public class Account : BaseAuditableEntity
     public void Deactivate()
     {
         if (!IsActive) return;
+        
         IsActive = false;
         AddDomainEvent(new AccountDeactivatedEvent(this));
     }

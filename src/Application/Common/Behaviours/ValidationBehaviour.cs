@@ -2,27 +2,21 @@
 
 namespace GameServer.Application.Common.Behaviours;
 
-public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
-     where TRequest : notnull
+public class ValidationBehaviour<TRequest, TResponse>(
+    IEnumerable<IValidator<TRequest>> validators,
+    ILogger<ValidationBehaviour<TRequest, TResponse>> logger)
+    : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : notnull
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
-    private readonly ILogger<ValidationBehaviour<TRequest, TResponse>> _logger;
-
-    public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators, ILogger<ValidationBehaviour<TRequest, TResponse>> logger)
+    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken ct)
     {
-        _validators = validators;
-        _logger = logger;
-    }
-
-    public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
-    {
-        if (_validators.Any())
+        if (validators.Any())
         {
             var context = new ValidationContext<TRequest>(request);
 
             var validationResults = await Task.WhenAll(
-                _validators.Select(v =>
-                    v.ValidateAsync(context, cancellationToken)));
+                validators.Select(v =>
+                    v.ValidateAsync(context, ct)));
 
             var failures = validationResults
                 .Where(r => r.Errors.Any())
@@ -32,7 +26,7 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
             // Logue cada falha com nome da propriedade e mensagem
             foreach (var failure in failures)
             {
-                _logger.LogWarning(
+                logger.LogWarning(
                     "[Validation] {RequestType}.{PropertyName}: {ErrorMessage}",
                     typeof(TRequest).Name,
                     failure.PropertyName,
@@ -42,6 +36,6 @@ public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TReque
             if (failures.Any())
                 throw new ValidationException(failures);
         }
-        return await next();
+        return await next(ct);
     }
 }

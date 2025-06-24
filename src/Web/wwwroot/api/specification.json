@@ -103,6 +103,24 @@
         ]
       }
     },
+    "/api/Accounts/logout": {
+      "post": {
+        "tags": [
+          "Accounts"
+        ],
+        "operationId": "Logout",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Users/register": {
       "post": {
         "tags": [
@@ -485,24 +503,6 @@
             }
           },
           "404": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT": []
-          }
-        ]
-      }
-    },
-    "/api/Users/manage/logout": {
-      "post": {
-        "tags": [
-          "Users"
-        ],
-        "operationId": "Logout",
-        "responses": {
-          "200": {
             "description": ""
           }
         },

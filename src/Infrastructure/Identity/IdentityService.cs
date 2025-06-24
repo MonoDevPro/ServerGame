@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using GameServer.Application.Common.Interfaces.Identity;
 using GameServer.Application.Common.Models;
 using GameServer.Infrastructure.Identity.Extensions;
@@ -68,5 +69,65 @@ public class IdentityService(
         var result = await userManager.DeleteAsync(applicationUser);
 
         return result.ToApplicationResult();
+    }
+    
+    public async Task<bool> HasClaimAsync(string userId, string claimType)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return false;
+
+        var claims = await userManager.GetClaimsAsync(user);
+        return claims.Any(c => c.Type == claimType);
+    }
+
+    public async Task<string?> GetClaimValueAsync(string userId, string claimType)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return null;
+
+        var claims = await userManager.GetClaimsAsync(user);
+        return claims.FirstOrDefault(c => c.Type == claimType)?.Value;
+    }
+
+    public async Task<Result> AddClaimAsync(string userId, string claimType, string claimValue)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return Result.Failure([$"User not found: {userId}"]);
+
+        // Remover claim existente se houver
+        await RemoveClaimAsync(userId, claimType);
+
+        var result = await userManager.AddClaimAsync(user, new Claim(claimType, claimValue));
+        return result.ToApplicationResult();
+    }
+
+    public async Task<Result> RemoveClaimAsync(string userId, string claimType)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return Result.Success();
+
+        var claims = await userManager.GetClaimsAsync(user);
+        var claimToRemove = claims.FirstOrDefault(c => c.Type == claimType);
+        
+        if (claimToRemove != null)
+        {
+            var result = await userManager.RemoveClaimAsync(user, claimToRemove);
+            return result.ToApplicationResult();
+        }
+
+        return Result.Success();
+    }
+
+    public async Task<Result> UpdateClaimAsync(string userId, string claimType, string newValue)
+    {
+        return await AddClaimAsync(userId, claimType, newValue);
+    }
+
+    public async Task<IList<Claim>> GetUserClaimsAsync(string userId)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null) return new List<Claim>();
+
+        return await userManager.GetClaimsAsync(user);
     }
 }

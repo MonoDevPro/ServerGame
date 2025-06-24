@@ -18,8 +18,8 @@ public class Accounts : EndpointGroupBase
             .RequireAuthorization()
             .MapGet(Get)
             .MapPut(Update, "") // Activity, Status, etc.
-            .MapPost(Login, "/login"); // novo endpoint
-            .MapPost(Logout, "/logout") // novo endpoint
+            .MapPost(Login, "/login") // novo endpoint
+            .MapPost(Logout, "/logout"); // novo endpoint
     }
 
     private async Task<Results<Ok<AccountDto>, NotFound, ProblemHttpResult>> Get(

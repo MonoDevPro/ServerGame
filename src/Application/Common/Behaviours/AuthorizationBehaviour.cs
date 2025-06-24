@@ -8,12 +8,27 @@ namespace GameServer.Application.Common.Behaviours;
 
 public class AuthorizationBehaviour<TRequest, TResponse>(
     IUser user,
-    IIdentityService identityService) : IPipelineBehavior<TRequest, TResponse>
+    IIdentityService identityService,
+    IGameSessionService gameSessionService) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var authorizeAttributes = request.GetType().GetCustomAttributes<AuthorizeAttribute>().ToList();
+        var gameSessionAttributes = request.GetType().GetCustomAttributes<RequireGameSessionAttribute>().ToList();
+
+        // Verificação de Game Session ANTES da autorização tradicional
+        if (gameSessionAttributes.Count > 0)
+        {
+            if (user.Id == null)
+                throw new UnauthorizedAccessException("User not authenticated");
+
+            var hasActiveSession = await gameSessionService.IsAccountLoggedInAsync(user.Id);
+            if (!hasActiveSession)
+            {
+                throw new GameSessionRequiredException("GAME_SESSION_REQUIRED: You must login to your game account first");
+            }
+        }
 
         if (authorizeAttributes.Count == 0)
             return await next(cancellationToken);

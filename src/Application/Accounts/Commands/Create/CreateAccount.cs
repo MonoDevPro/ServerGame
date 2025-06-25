@@ -16,22 +16,11 @@ public class CreateAccountCommandHandler(
     /// </summary>
     public async Task Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            if (await accountService.ExistsAsync(cancellationToken))
-                return;
+        if (await accountService.ExistsAsync(cancellationToken))
+            return;
 
-            var account = await accountService.CreateAsync(cancellationToken);
+        var account = await accountService.CreateAsync(cancellationToken);
 
-            logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
-        }
-        catch (DomainException ex)
-        {
-            logger.LogError(ex, "Erro de domínio ao criar conta: {Message}", ex.Message);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Erro ao criar conta");
-        }
+        logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
     }
 }

@@ -1,34 +1,30 @@
 using System;
 using GameServer.Application.Accounts.Services;
 using GameServer.Application.Common.Interfaces;
+using GameServer.Application.Common.Security;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Accounts.Commands.Login;
 
-public record LogoutAccountCommand : IRequest;
+[RequireGameSession]
+public record LogoutAccountCommand : IRequest<Unit>;
 
 public class LogoutAccountCommandHandler(
     IAccountService accountService, 
     IUser user,
     IGameSessionService gameSessionService,
     ILogger<LogoutAccountCommandHandler> logger
-    ) : IRequestHandler<LogoutAccountCommand>
+    ) : IRequestHandler<LogoutAccountCommand, Unit>
 {
-    public async Task Handle(LogoutAccountCommand request, CancellationToken cancellationToken)
+    public async Task<Unit> Handle(LogoutAccountCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            var account = await accountService.GetForUpdateAsync(cancellationToken);
-            account.Logout();
+        var account = await accountService.GetForUpdateAsync(cancellationToken);
+        account.Logout();
 
-            await gameSessionService.RevokeAccountSessionAsync(user.Id!);
+        await gameSessionService.RevokeAccountSessionAsync(user.Id!);
 
-            logger.LogInformation("User logged out successfully.");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error during logout process");
-            throw;
-        }
+        logger.LogInformation("User logged out successfully.");
+        
+        return Unit.Value;
     }
 }

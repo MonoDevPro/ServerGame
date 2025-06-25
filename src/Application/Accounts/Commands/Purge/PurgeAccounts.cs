@@ -17,22 +17,9 @@ public class DeleteAccountCommandHandler(
 {
     public async Task Handle(PurgeAccountCommand request, CancellationToken cancellationToken)
     {
-        try
-        {
-            // Deletar todas entidade
-            await accountService.PurgeAsync(cancellationToken);
+        // Deletar todas entidade
+        await accountService.PurgeAsync(cancellationToken);
             
-            logger.LogInformation("Accounts purged successfully");
-        }
-        catch (DomainException ex)
-        {
-            logger.LogError(ex, "Domain error while deleting accounts: {Message}", ex.Message);
-            throw; // Re-throwing the exception to be handled by the caller
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error while deleting accounts: {Message}", ex.Message);
-            throw new ApplicationException("An error occurred while deleting the accounts.", ex);
-        }
+        logger.LogInformation("Accounts purged successfully");
     }
 }

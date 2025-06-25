@@ -14,119 +14,80 @@ public class Accounts : EndpointGroupBase
 {
     public override void Map(WebApplication app)
     {
-        app.MapGroup(this)
-            .RequireAuthorization()
-            .MapGet(Get)
-            .MapPut(Update, "") // Activity, Status, etc.
-            .MapPost(Login, "/login") // novo endpoint
-            .MapPost(Logout, "/logout"); // novo endpoint
+        var group = app.MapGroup(this);
+            
+        group.RequireAuthorization()
+            
+            .MapGet(GetAccount)
+            .MapPut(UpdateAccount, "") // Activity, Status, etc.
+            .MapPost(LoginAccount, "/login") // novo endpoint
+            .MapPost(LogoutAccount, "/logout"); // novo endpoint
     }
 
-    private async Task<Results<Ok<AccountDto>, NotFound, ProblemHttpResult>> Get(
-        ISender sender,
-        IUser user)
+    private static async Task<IResult> GetAccount(IUser user, ISender sender)
     {
+        if (string.IsNullOrEmpty(user.Id))
+            return Results.Unauthorized();
+
         try
         {
-            if (string.IsNullOrEmpty(user.Id))
-                return TypedResults.NotFound();
-
-            var query = new GetAccountQuery();
-            var result = await sender.Send(query);
-            return TypedResults.Ok(result);
+            var dto = await sender.Send(new GetAccountQuery());
+            return Results.Ok(dto);
         }
         catch (NotFoundException)
         {
-            return TypedResults.NotFound();
+            return Results.NotFound();
         }
         catch (DomainException ex)
         {
-            return TypedResults.Problem(
-                detail: ex.Message,
-                statusCode: StatusCodes.Status400BadRequest);
-        }
-        catch (Exception ex)
-        {
-            return TypedResults.Problem(
-                detail: $"Erro ao obter dados da conta: {ex.Message}",
-                statusCode: StatusCodes.Status500InternalServerError);
+            return Results.BadRequest(new { error = ex.Message });
         }
     }
 
     private static readonly string[] Error = ["ID in URL must match ID in request body"];
 
-    private async Task<Results<Ok, BadRequest<string[]>, NotFound>> Update(
-        [FromBody] AccountDto accountDto,
-        ISender sender,
-        IUser user)
+    private static async Task<IResult> UpdateAccount(
+        IUser user,
+        [FromBody] AccountDto dto,
+        ISender sender)
     {
-        // Verifica se o usuário está autenticado
         if (string.IsNullOrEmpty(user.Id))
-            return TypedResults.BadRequest(Error);
-
-        var command = new UpdateAccountCommand(accountDto);
+            return Results.Unauthorized();
 
         try
         {
-            await sender.Send(command);
-            return TypedResults.Ok();
+            await sender.Send(new UpdateAccountCommand(dto));
+            return Results.NoContent();
         }
         catch (NotFoundException)
         {
-            return TypedResults.NotFound();
+            return Results.NotFound();
         }
         catch (DomainException ex)
         {
-            return TypedResults.BadRequest(new[] { ex.Message });
+            return Results.BadRequest(new { error = ex.Message });
         }
     }
 
-    // Novo: POST /login
-    private async Task<Results<Ok<AccountDto>, ProblemHttpResult>> Login(
-        ISender sender,
-        IUser user)
+    private static async Task<IResult> LoginAccount(IUser user, ISender sender)
     {
         if (string.IsNullOrEmpty(user.Id))
-            return TypedResults.Problem(
-                detail: "Usuário não autenticado.",
-                statusCode: StatusCodes.Status401Unauthorized);
+            return Results.Unauthorized();
 
-        // Dispara o comando de login (que criará a conta se não existir e registrará o login)
-        await sender.Send(new LoginAccountCommand());
+        var loginResult = await sender.Send(new LoginAccountCommand());
+        if (!loginResult.Success)
+            return Results.BadRequest(new { error = "LOGIN_FAILED", message = loginResult.ErrorMessage });
 
-        // Recupera a conta já atualizada
-        var account = await sender.Send(new GetAccountQuery());
-
-        return TypedResults.Ok(account);
+        var dto = await sender.Send(new GetAccountQuery());
+        return Results.Ok(dto);
     }
 
-    // Noov: POST /create
-    private async Task<Results<Ok<AccountDto>, ProblemHttpResult>> Create(
-        ISender sender,
-        IUser user)
+    private static async Task<IResult> LogoutAccount(IUser user, ISender sender)
     {
         if (string.IsNullOrEmpty(user.Id))
-            return TypedResults.Problem(
-                detail: "Usuário não autenticado.",
-                statusCode: StatusCodes.Status401Unauthorized);
-        // Dispara o comando de criação de conta
-        await sender.Send(new CreateAccountCommand());
-        var account = await sender.Send(new GetAccountQuery());
-        return TypedResults.Ok(account);
-    }
+            return Results.Unauthorized();
 
-    // Novo: POST /logout
-    private async Task<Results<Ok, ProblemHttpResult>> Logout(
-        ISender sender,
-        IUser user)
-    {
-        if (string.IsNullOrEmpty(user.Id))
-            return TypedResults.Problem(
-                detail: "Usuário não autenticado.",
-                statusCode: StatusCodes.Status401Unauthorized);
-
-        // Dispara o comando de logout
         await sender.Send(new LogoutAccountCommand());
-        return TypedResults.Ok();
+        return Results.Ok();
     }
 }

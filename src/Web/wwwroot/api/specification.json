@@ -121,6 +121,110 @@
         ]
       }
     },
+    "/api/GameSessionExamples/regular-action": {
+      "post": {
+        "tags": [
+          "GameSessionExamples"
+        ],
+        "operationId": "RegularAction",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/GameSessionExamples/readonly-data": {
+      "get": {
+        "tags": [
+          "GameSessionExamples"
+        ],
+        "operationId": "ReadOnlyData",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/GameSessionExamples/vip-action": {
+      "post": {
+        "tags": [
+          "GameSessionExamples"
+        ],
+        "operationId": "VipAction",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/GameSessionExamples/staff-action": {
+      "post": {
+        "tags": [
+          "GameSessionExamples"
+        ],
+        "operationId": "StaffAction",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
+    "/api/GameSessionExamples/gamemaster-readonly": {
+      "get": {
+        "tags": [
+          "GameSessionExamples"
+        ],
+        "operationId": "GameMasterReadOnly",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Users/register": {
       "post": {
         "tags": [

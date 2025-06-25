@@ -18,9 +18,12 @@ public static class DependencyInjection
     {
         builder.Services.AddScoped<IGameSessionService, GameSessionService>();
         builder.Services.AddScoped<IIdentityService, IdentityService>();
-        
+
         // Adicionar memória transitória como cache
         builder.Services.AddMemoryCache();
+
+        // Adicionar métricas
+        builder.Services.AddMetrics();
 
         builder.Services
             .AddIdentityCore<ApplicationUser>()
@@ -38,27 +41,9 @@ public static class DependencyInjection
         builder.Services.AddAuthorization(options =>
         {
             options
-                .AddPolicy(Policies.CanPurge, policy 
+                .AddPolicy(Policies.CanPurge, policy
                     => policy.RequireRole(Roles.Administrator));
-            
-            options
-                .AddPolicy(Policies.GameSession, policy 
-                    => policy.RequireAssertion(context =>
-                    {
-                        var accountClaim = context.User.FindFirst(Domain.Constants.Claims.AccountId);
-                        var sessionTimeClaim = context.User.FindFirst(Domain.Constants.Claims.SessionStartTime);
-                        
-                        if (accountClaim == null || sessionTimeClaim == null)
-                            return false;
 
-                        // Verificar se a sessão não é muito antiga (opcional)
-                        if (!long.TryParse(sessionTimeClaim.Value, out var timestamp))
-                            return true;
-
-                        var sessionStart = DateTimeOffset.FromUnixTimeSeconds(timestamp);
-                        var maxAge = TimeSpan.FromHours(8);
-                        return DateTimeOffset.UtcNow - sessionStart < maxAge;
-                    }));
         });
 
         builder.ConfigureIdentityPersistence();

@@ -11,19 +11,9 @@
         "tags": [
           "Accounts"
         ],
-        "operationId": "Get",
+        "operationId": "GetAccount",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountDto"
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -37,9 +27,9 @@
         "tags": [
           "Accounts"
         ],
-        "operationId": "Update",
+        "operationId": "UpdateAccount",
         "requestBody": {
-          "x-name": "accountDto",
+          "x-name": "dto",
           "content": {
             "application/json": {
               "schema": {
@@ -52,22 +42,6 @@
         },
         "responses": {
           "200": {
-            "description": ""
-          },
-          "400": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
-          },
-          "404": {
             "description": ""
           }
         },
@@ -83,17 +57,10 @@
         "tags": [
           "Accounts"
         ],
-        "operationId": "Login",
+        "operationId": "LoginAccount",
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AccountDto"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -108,7 +75,7 @@
         "tags": [
           "Accounts"
         ],
-        "operationId": "Logout",
+        "operationId": "LogoutAccount",
         "responses": {
           "200": {
             "description": ""

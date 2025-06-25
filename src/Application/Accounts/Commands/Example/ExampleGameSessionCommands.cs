@@ -1,4 +1,5 @@
 using GameServer.Application.Common.Security;
+using GameServer.Domain.Enums;
 
 namespace GameServer.Application.Accounts.Commands.Example;
 
@@ -11,15 +12,15 @@ public record RegularGameActionCommand : IRequest<Unit>;
 public record ReadOnlyGameDataQuery : IRequest<string>;
 
 // Example 3: Require VIP level (1) or higher
-[RequireGameSession(MinimumLevel = 1)]
+[RequireGameSession(MinAccountType = AccountType.VIP)]
 public record VipOnlyActionCommand : IRequest<Unit>;
 
 // Example 4: Require Staff level (3) or higher
-[RequireGameSession(MinimumLevel = 3)]
+[RequireGameSession(MinAccountType = AccountType.Staff)]
 public record StaffActionCommand : IRequest<Unit>;
 
 // Example 5: Allow expired session but require minimum level
-[RequireGameSession(AllowExpiredSession = true, MinimumLevel = 2)]
+[RequireGameSession(AllowExpiredSession = true, MinAccountType = AccountType.GameMaster)]
 public record GameMasterReadOnlyQuery : IRequest<string>;
 
 public class ExampleCommandHandlers :

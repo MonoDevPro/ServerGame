@@ -2,7 +2,6 @@ using System.Reflection;
 using GameServer.Application.Common.Exceptions;
 using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common.Security;
-using GameServer.Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Common.Behaviours;
@@ -36,16 +35,16 @@ public class GameSessionBehavior<TRequest, TResponse>(
                 throw new GameSessionRequiredException("GAME_SESSION_REQUIRED: You must login to your game account first");
 
             // Verificar nível mínimo se especificado
-            if (attribute.MinimumLevel > 0)
+            if (attribute.MinAccountType > 0)
             {
                 var profile = await gameSessionService.GetProfileAsync(user.Id);
                 if (profile == null)
                     throw new ForbiddenException("Unable to retrieve user profile for level verification");
 
                 // Usar AccountType como proxy para level (Player=0, VIP=1, GameMaster=2, Staff=3, Administrator=4)
-                var userLevel = (int)profile.AccountType;
-                if (userLevel < attribute.MinimumLevel)
-                    throw new ForbiddenException($"Insufficient level. Required: {attribute.MinimumLevel}, Current: {userLevel} ({profile.AccountType})");
+                var userLevel = profile.AccountType;
+                if (userLevel < attribute.MinAccountType)
+                    throw new ForbiddenException($"Insufficient level. Required: {attribute.MinAccountType}, Current: {userLevel} ({profile.AccountType})");
             }
 
             // Renovar sessão se válida (não para sessões expiradas)
@@ -56,7 +55,7 @@ public class GameSessionBehavior<TRequest, TResponse>(
             }
 
             logger.LogInformation("Game session check passed for user {UserId}, AllowExpiredSession: {AllowExpired}, MinLevel: {MinLevel}",
-                user.Id, attribute.AllowExpiredSession, attribute.MinimumLevel);
+                user.Id, attribute.AllowExpiredSession, attribute.MinAccountType);
         }
 
         return await next(cancellationToken);

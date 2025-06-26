@@ -11,9 +11,9 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
     public void Configure(EntityTypeBuilder<Account> builder)
     {
         builder.HasBaseType<BaseAuditableEntity>();
-        
+
         builder.ToTable("Accounts");
-        
+
         builder.OwnsOne(a => a.BanInfo, ban =>
         {
             ban.Property(b => b.Status)
@@ -34,20 +34,26 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
 
         builder.Property(a => a.LastLoginInfo)
             .HasConversion(
-                vo   => LoginInfoConverters.ToProvider(vo),
-                str  => LoginInfoConverters.FromProvider(str)
+                vo => LoginInfoConverters.ToProvider(vo),
+                str => LoginInfoConverters.FromProvider(str)
             )
             .HasColumnName("LastLoginInfo")
             .HasMaxLength(100)
             .IsRequired(false);
+
+        // Characters relationship configuration
+        builder.HasMany(a => a.Characters)
+            .WithOne(c => c.Account)
+            .HasForeignKey(c => c.AccountId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
 
 public static class LoginInfoConverters
 {
     public static string? ToProvider(LoginInfo? vo) =>
-        vo is null 
-            ? null 
+        vo is null
+            ? null
             : $"{vo.LastLoginIp}|{vo.LastLoginDate:o}";
 
     public static LoginInfo? FromProvider(string? str)

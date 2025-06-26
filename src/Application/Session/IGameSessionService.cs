@@ -1,15 +1,20 @@
 using GameServer.Application.Accounts.Queries.Models;
 
-namespace GameServer.Application.Common.Interfaces;
+namespace GameServer.Application.Session;
 
 public interface IGameSessionService
 {
     Task<bool> IsAccountLoggedInAsync(string userId);
-    Task SetAccountSessionAsync(string userId, string accountId, TimeSpan? expiration = null);
+    Task SetAccountSessionAsync(string userId, long accountId, TimeSpan? expiration = null);
     Task RevokeAccountSessionAsync(string userId);
-    Task<string?> GetActiveAccountIdAsync(string userId);
+    Task<long?> GetActiveAccountIdAsync(string userId);
     Task<Dictionary<string, object>?> GetSessionDataAsync(string userId);
     Task UpdateSessionDataAsync(string userId, Dictionary<string, object> data);
+
+    // Character selection methods
+    Task SetSelectedCharacterAsync(string userId, long characterId);
+    Task<long?> GetSelectedCharacterIdAsync(string userId);
+    Task ClearSelectedCharacterAsync(string userId);
 
     // New methods for enhanced session management
     Task<bool> IsSessionValidAsync(string userId);

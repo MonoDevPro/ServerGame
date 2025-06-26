@@ -5,10 +5,15 @@ namespace GameServer.Domain.Entities;
 
 public class Account : BaseAuditableEntity
 {
+    private readonly List<Character> _characters = [];
+
     // Propriedade virtual de navegação para o usuário.
     public AccountType AccountType { get; private set; } = AccountType.Player;
     public BanInfo? BanInfo { get; private set; }
     public LoginInfo? LastLoginInfo { get; private set; }
+
+    // Characters collection
+    public IReadOnlyCollection<Character> Characters => _characters.AsReadOnly();
 
     protected Account() { }
 
@@ -122,4 +127,39 @@ public class Account : BaseAuditableEntity
 
     private bool HasMinimumRequirementsForStaff()
         => true;
+
+    // Character management
+    public void AddCharacter(Character character)
+    {
+        if (character == null)
+            throw new ArgumentNullException(nameof(character));
+
+        if (character.AccountId != Id)
+            throw new DomainException("Character AccountId must match the Account Id");
+
+        if (_characters.Count >= 3)
+            throw new DomainException("Account cannot have more than 3 characters");
+
+        if (_characters.Any(c => c.Name.Equals(character.Name, StringComparison.OrdinalIgnoreCase)))
+            throw new DomainException($"Character with name '{character.Name}' already exists for this account");
+
+        _characters.Add(character);
+        AddDomainEvent(new CharacterAddedToAccountEvent(this, character));
+    }
+
+    public Character? GetCharacterByName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return null;
+
+        return _characters.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public void RemoveCharacter(Character character)
+    {
+        if (character == null)
+            throw new ArgumentNullException(nameof(character));
+
+        _characters.Remove(character);
+    }
 }

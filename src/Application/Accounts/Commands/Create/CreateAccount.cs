@@ -7,7 +7,7 @@ namespace GameServer.Application.Accounts.Commands.Create;
 public record CreateAccountCommand : IRequest;
 
 public class CreateAccountCommandHandler(
-    IAccountService accountService,
+    ICurrentAccountService currentAccountService,
     ILogger<CreateAccountCommandHandler> logger)
     : IRequestHandler<CreateAccountCommand>
 {
@@ -16,10 +16,10 @@ public class CreateAccountCommandHandler(
     /// </summary>
     public async Task Handle(CreateAccountCommand request, CancellationToken cancellationToken)
     {
-        if (await accountService.ExistsAsync(cancellationToken))
+        if (await currentAccountService.ExistsAsync(cancellationToken))
             return;
 
-        var account = await accountService.CreateAsync(cancellationToken);
+        var account = await currentAccountService.EnsureCreatedAsync(cancellationToken);
 
         logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
     }

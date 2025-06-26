@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Game.Persistence.Hosted;
 
-public class DataSeedHosted(
+public class ApplyMigrationsHosted(
     IServiceProvider provider,
-    ILogger<DataSeedHosted> logger) : IHostedService
+    ILogger<ApplyMigrationsHosted> logger) : IHostedService
 {
     public async Task StartAsync(CancellationToken cancellationToken)
     {

@@ -6,6 +6,7 @@ namespace GameServer.Application.Accounts.Queries.Models
 {
     public class AccountDto
     {
+        public long Id { get; set; }
         public bool IsActive { get; set; }
         public AccountType AccountType { get; set; }
         public BanInfoDto? BanInfo { get; set; } = null!;

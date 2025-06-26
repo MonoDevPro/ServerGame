@@ -1,6 +1,7 @@
 ﻿using GameServer.Application.Accounts.Commands.Create;
 using GameServer.Application.Accounts.Services;
 using GameServer.Application.Common.Interfaces;
+using GameServer.Application.Session;
 using GameServer.Domain.Entities;
 using GameServer.Domain.Exceptions;
 using GameServer.Domain.ValueObjects.Accounts;
@@ -12,13 +13,13 @@ public record LoginAccountCommand : IRequest<LoginAccountResult>;
 
 public record LoginAccountResult(
     bool Success,
-    string? AccountId,
+    long? AccountId,
     int ExpiresInSeconds,
     string? ErrorMessage
 );
 
 public class LoginAccountCommandHandler(
-    IAccountService accountService,
+    ICurrentAccountService currentAccountService,
     IGameSessionService sessionService,
     IUser user)
     : IRequestHandler<LoginAccountCommand, LoginAccountResult>
@@ -26,14 +27,14 @@ public class LoginAccountCommandHandler(
     public async Task<LoginAccountResult> Handle(LoginAccountCommand request, CancellationToken ct)
     {
         // 1) Recupere EM TRACKING a conta (nova ou existente)
-        var account = await accountService.GetForUpdateAsync(ct);
+        var account = await currentAccountService.GetForUpdateAsync(ct);
 
         // 2) Faça o login
         account.Login(LoginInfo.Create(user.IpAddress!, DateTimeOffset.UtcNow));
             
         // 3) Persiste via UnitOfWorkBehavior (não chamamos SaveChanges aqui)
         //    mas precisamos da AccountId para sessão
-        var accountId = account.Id.ToString();
+        var accountId = account.Id;
 
         // 4) Cria/renova sessão de jogo
         await sessionService.SetAccountSessionAsync(

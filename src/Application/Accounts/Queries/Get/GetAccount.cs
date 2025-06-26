@@ -8,10 +8,10 @@ namespace GameServer.Application.Accounts.Queries.Get;
 public record GetAccountQuery : IRequest<AccountDto>;
 
 public class GetAccountQueryHandler(
-    IAccountService accountService) : IRequestHandler<GetAccountQuery, AccountDto>
+    ICurrentAccountService currentAccountService) : IRequestHandler<GetAccountQuery, AccountDto>
 {
     public async Task<AccountDto> Handle(GetAccountQuery request, CancellationToken ct)
     {
-        return await accountService.GetDtoAsync(ct);
+        return await currentAccountService.GetDtoAsync(ct);
     }
 }

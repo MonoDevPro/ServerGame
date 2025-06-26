@@ -4,11 +4,11 @@ namespace GameServer.Application.Accounts.Commands.Delete;
 
 public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountCommand>
 {
-    private readonly IAccountService _accountService;
+    private readonly ICurrentAccountService _currentAccountService;
 
-    public DeleteAccountCommandValidator(IAccountService accountService)
+    public DeleteAccountCommandValidator(ICurrentAccountService currentAccountService)
     {
-        _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+        _currentAccountService = currentAccountService ?? throw new ArgumentNullException(nameof(currentAccountService));
 
         RuleFor(v => v)
             .MustAsync(BeExistsEntity)
@@ -18,6 +18,6 @@ public class DeleteAccountCommandValidator : AbstractValidator<DeleteAccountComm
 
     private async Task<bool> BeExistsEntity(DeleteAccountCommand command, CancellationToken cancellationToken)
     {
-        return await _accountService.ExistsAsync(cancellationToken);
+        return await _currentAccountService.ExistsAsync(cancellationToken);
     }
 }

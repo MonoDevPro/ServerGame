@@ -2,6 +2,7 @@ using System;
 using GameServer.Application.Accounts.Services;
 using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common.Security;
+using GameServer.Application.Session;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Accounts.Commands.Login;
@@ -10,7 +11,7 @@ namespace GameServer.Application.Accounts.Commands.Login;
 public record LogoutAccountCommand : IRequest<Unit>;
 
 public class LogoutAccountCommandHandler(
-    IAccountService accountService, 
+    ICurrentAccountService currentAccountService, 
     IUser user,
     IGameSessionService gameSessionService,
     ILogger<LogoutAccountCommandHandler> logger
@@ -18,7 +19,7 @@ public class LogoutAccountCommandHandler(
 {
     public async Task<Unit> Handle(LogoutAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = await accountService.GetForUpdateAsync(cancellationToken);
+        var account = await currentAccountService.GetForUpdateAsync(cancellationToken);
         account.Logout();
 
         await gameSessionService.RevokeAccountSessionAsync(user.Id!);

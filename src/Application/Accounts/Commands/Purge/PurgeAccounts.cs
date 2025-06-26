@@ -11,14 +11,14 @@ namespace GameServer.Application.Accounts.Commands.Purge;
 public record PurgeAccountCommand : IRequest;
 
 public class DeleteAccountCommandHandler(
-    IAccountService accountService,
+    ICurrentAccountService currentAccountService,
     ILogger<DeleteAccountCommandHandler> logger)
     : IRequestHandler<PurgeAccountCommand>
 {
     public async Task Handle(PurgeAccountCommand request, CancellationToken cancellationToken)
     {
         // Deletar todas entidade
-        await accountService.PurgeAsync(cancellationToken);
+        await currentAccountService.PurgeAsync(cancellationToken);
             
         logger.LogInformation("Accounts purged successfully");
     }

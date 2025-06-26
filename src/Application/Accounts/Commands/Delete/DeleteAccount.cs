@@ -7,12 +7,12 @@ namespace GameServer.Application.Accounts.Commands.Delete;
 public record DeleteAccountCommand : IRequest;
 
 public class DeleteAccountCommandHandler(
-    IAccountService accountService
+    ICurrentAccountService currentAccountService
     ) : IRequestHandler<DeleteAccountCommand>
 {
     public async Task Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-            var entity = await accountService.GetForUpdateAsync(cancellationToken);
+            var entity = await currentAccountService.GetForUpdateAsync(cancellationToken);
             entity.Deactivate();
     }
 }

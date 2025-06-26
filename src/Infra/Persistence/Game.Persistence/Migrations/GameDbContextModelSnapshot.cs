@@ -80,6 +80,42 @@ namespace Game.Persistence.Migrations
                     b.ToTable("Accounts", "gameserver");
                 });
 
+            modelBuilder.Entity("GameServer.Domain.Entities.Character", b =>
+                {
+                    b.HasBaseType("GameServer.Domain.Common.BaseAuditableEntity");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Class")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<long>("Experience")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<int>("Level")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasIndex("AccountId")
+                        .HasDatabaseName("IX_Characters_AccountId");
+
+                    b.HasIndex("AccountId", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Characters_AccountId_Name");
+
+                    b.ToTable("Characters", "gameserver");
+                });
+
             modelBuilder.Entity("GameServer.Domain.Entities.Account", b =>
                 {
                     b.OwnsOne("GameServer.Domain.ValueObjects.Accounts.BanInfo", "BanInfo", b1 =>
@@ -114,6 +150,22 @@ namespace Game.Persistence.Migrations
                         });
 
                     b.Navigation("BanInfo");
+                });
+
+            modelBuilder.Entity("GameServer.Domain.Entities.Character", b =>
+                {
+                    b.HasOne("GameServer.Domain.Entities.Account", "Account")
+                        .WithMany("Characters")
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("GameServer.Domain.Entities.Account", b =>
+                {
+                    b.Navigation("Characters");
                 });
 #pragma warning restore 612, 618
         }

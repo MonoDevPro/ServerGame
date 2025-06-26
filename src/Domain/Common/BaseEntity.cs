@@ -6,7 +6,7 @@ public abstract class BaseEntity : IHasDomainEvents
 {
     public long Id { get; private set; } // identidade
     
-    public bool IsActive { get; protected set; }
+    public bool IsActive { get; protected set; } // Soft delete flag
     
     private readonly List<IDomainEvent> _domainEvents = []; // eventos de domínio :contentReference[oaicite:9]{index=9}
     [NotMapped]

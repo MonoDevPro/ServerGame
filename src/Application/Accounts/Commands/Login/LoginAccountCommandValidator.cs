@@ -4,11 +4,11 @@ namespace GameServer.Application.Accounts.Commands.Login;
 
 public class LoginAccountCommandValidator : AbstractValidator<LoginAccountCommand>
 {
-    private readonly IAccountService _accountService;
+    private readonly ICurrentAccountService _currentAccountService;
 
-    public LoginAccountCommandValidator(IAccountService accountService)
+    public LoginAccountCommandValidator(ICurrentAccountService currentAccountService)
     {
-        _accountService = accountService ?? throw new ArgumentNullException(nameof(accountService));
+        _currentAccountService = currentAccountService ?? throw new ArgumentNullException(nameof(currentAccountService));
 
         RuleFor(v => v)
             .MustAsync(BeExistsEntity)
@@ -18,6 +18,6 @@ public class LoginAccountCommandValidator : AbstractValidator<LoginAccountComman
 
     private async Task<bool> BeExistsEntity(LoginAccountCommand command, CancellationToken cancellationToken)
     {
-        return await _accountService.ExistsAsync(cancellationToken);
+        return await _currentAccountService.ExistsAsync(cancellationToken);
     }
 }

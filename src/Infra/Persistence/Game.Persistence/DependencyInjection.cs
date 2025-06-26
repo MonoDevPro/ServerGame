@@ -27,14 +27,14 @@ public static class DependencyInjection
         // Persistence
         var connectionString = builder.Configuration.GetConnectionString("serverdb");
         Guard.Against.Null(connectionString, message: "Connection string 'serverdb' not found.");
-        
+
         builder.Services.AddScoped<ISaveChangesInterceptor, AuditableInterceptor>();
         builder.Services.AddScoped<ISaveChangesInterceptor, NotificationInterceptor>();
 
         builder.Services.AddScoped<IUnitOfWork, EfUnitOfWork>();
-        
-        builder.Services.AddHostedService<DataSeedHosted>();
-        
+
+        builder.Services.AddHostedService<ApplyMigrationsHosted>();
+
         // Game
         builder.Services.AddDbContext<GameDbContext>((sp, opt) =>
         {
@@ -49,11 +49,12 @@ public static class DependencyInjection
         });
         builder.EnrichNpgsqlDbContext<GameDbContext>();
         builder.RegisterRepositoriesFor<GameDbContext>(
-            typeof(Account) /* entidades de domínio */);
-        
+            typeof(Account), /* entidades de domínio */
+            typeof(Character));
+
         return builder;
     }
-    
+
     public static void RegisterRepositoriesFor<TContext>(
         this IHostApplicationBuilder hostBuilder,
         params Type[] entityTypes)
@@ -81,7 +82,7 @@ public static class DependencyInjection
                     var instance = Activator.CreateInstance(repoType, ctx);
                     return Guard.Against.Null(instance);
                 });
-            
+
             hostBuilder.Services.AddScoped(
                 typeof(IRepositoryCompose<>).MakeGenericType(et),
                 sp =>
@@ -91,7 +92,7 @@ public static class DependencyInjection
                     var reader = sp.GetRequiredService(
                         typeof(IReaderRepository<>).MakeGenericType(et));
                     var repoType = typeof(RepositoryCompose<>).MakeGenericType(et);
-                    
+
                     var instance = Activator.CreateInstance(repoType, writer, reader);
                     return Guard.Against.Null(instance);
                 });

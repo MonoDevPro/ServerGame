@@ -1,5 +1,6 @@
 using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common.Interfaces.Identity;
+using GameServer.Application.Session;
 using GameServer.Domain.Constants;
 using GameServer.Infrastructure.Identity.Claims;
 using Identity.Persistence;

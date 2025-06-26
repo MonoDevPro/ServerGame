@@ -19,6 +19,15 @@ public class CurrentAccountService(
 
         return await account.ExistsAsync(user.Id, cancellationToken);
     }
+    
+    public async Task<long> GetIdAsync(CancellationToken cancellationToken = default)
+    {
+        if (!await ExistsAsync(cancellationToken))
+            throw new NotFoundException("No account for current user", nameof(user.Id));
+
+        var dto = await account.GetDtoAsync(user.Id!, cancellationToken);
+        return dto.Id;
+    }
 
     public async Task<AccountDto> GetDtoAsync(CancellationToken cancellationToken = default)
     {

@@ -30,14 +30,15 @@ public class CharacterService(
                 cancellationToken: cancellationToken);
     }
 
-    public async Task<CharacterDto?> GetByIdAsync(long characterId, CancellationToken cancellationToken = default)
+    public async Task<CharacterDto> GetByIdAsync(long characterId, CancellationToken cancellationToken = default)
     {
         return await repo.ReaderRepository
             .QuerySingleAsync<CharacterDto>(
                 predicate: c => c.Id == characterId,
                 selector: c => mapper.Map<CharacterDto>(c),
                 trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken);
+                cancellationToken: cancellationToken) 
+               ?? throw new NotFoundException(nameof(characterId), $"Character with ID {characterId} not found");
     }
 
     public async Task<Character> CreateAsync(long accountId, string name, CharacterClass characterClass, CancellationToken cancellationToken = default)
@@ -71,7 +72,7 @@ public class CharacterService(
             throw new NotFoundException($"{nameof(dto.Id)}", $"Character with ID {dto.Id} not found");
 
         mapper.Map(dto, entity);
-        await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
+        //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
     }
 
     public async Task DeleteAsync(long characterId, CancellationToken cancellationToken = default)

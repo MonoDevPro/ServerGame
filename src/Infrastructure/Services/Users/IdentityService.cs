@@ -1,12 +1,12 @@
 using System.Security.Claims;
 using GameServer.Application.Common.Interfaces.Identity;
 using GameServer.Application.Common.Models;
-using GameServer.Infrastructure.Identity.Extensions;
+using GameServer.Infrastructure.Services.Users.Identity.Extensions;
 using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 
-namespace GameServer.Infrastructure.Identity;
+namespace GameServer.Infrastructure.Services.Users;
 
 public class IdentityService(
     UserManager<ApplicationUser> userManager,

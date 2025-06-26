@@ -85,6 +85,9 @@ public class SessionExpirationService(
                 {
                     await ProcessSingleExpirationAsync(identityService, item, cancellationToken);
                     processedCount++;
+                    
+                    // Verifica se o token de cancelamento foi solicitado
+                    cancellationToken.ThrowIfCancellationRequested();
                 }
                 catch (Exception ex)
                 {

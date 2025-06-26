@@ -97,7 +97,7 @@ public class AccountService(
             throw new NotFoundException(nameof(dto.Id), $"Account with ID {dto.Id} not found");
 
         mapper.Map(dto, entity);
-        await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
+        //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
     }
 
     public async Task DeleteAsync(long accountId, CancellationToken cancellationToken = default)
@@ -116,7 +116,7 @@ public class AccountService(
             throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
 
         entity.Deactivate();
-        await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
+        //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
     }
 
     public async Task PurgeAsync(string userId, CancellationToken cancellationToken = default)
@@ -133,7 +133,7 @@ public class AccountService(
         if (entity != null)
         {
             entity.Deactivate();
-            await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
+            //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
         }
     }
 

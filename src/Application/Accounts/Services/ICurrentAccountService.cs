@@ -12,6 +12,8 @@ public interface ICurrentAccountService
     /// Retorna true se o usuário autenticado já possui uma Account no domínio de jogo.
     /// </summary>
     Task<bool> ExistsAsync(CancellationToken cancellationToken = default);
+    
+    Task<long> GetIdAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retorna o DTO da Account do usuário autenticado.

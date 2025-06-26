@@ -1,9 +1,11 @@
 ﻿using GameServer.Application.Accounts.Services;
+using GameServer.Application.Common.Security;
 using GameServer.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Accounts.Commands.Delete;
 
+[RequireGameSession]
 public record DeleteAccountCommand : IRequest;
 
 public class DeleteAccountCommandHandler(
@@ -12,7 +14,6 @@ public class DeleteAccountCommandHandler(
 {
     public async Task Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
     {
-            var entity = await currentAccountService.GetForUpdateAsync(cancellationToken);
-            entity.Deactivate();
+        await currentAccountService.PurgeAsync(cancellationToken);
     }
 }

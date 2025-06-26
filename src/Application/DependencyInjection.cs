@@ -25,7 +25,7 @@ public static class DependencyInjection
             // ✅ Registro dos pipeline behaviors
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehaviour<,>));
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehaviour<,>));
-            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(GameSessionBehavior<,>)); // ✅ GameSession enforcement
+            cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(SessionBehaviour<,>)); // ✅ GameSession enforcement
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(CharacterSessionBehavior<,>)); // ✅ Character validation (after game session)
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
             cfg.AddBehavior(typeof(IPipelineBehavior<,>), typeof(PerformanceBehaviour<,>));

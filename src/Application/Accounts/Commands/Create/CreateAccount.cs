@@ -21,6 +21,6 @@ public class CreateAccountCommandHandler(
 
         var account = await currentAccountService.EnsureCreatedAsync(cancellationToken);
 
-        logger.LogInformation("Conta criada com sucesso: {UserId}", account.CreatedBy);
+        logger.LogInformation("Conta criada com sucesso: {UserId}", account.Id);
     }
 }

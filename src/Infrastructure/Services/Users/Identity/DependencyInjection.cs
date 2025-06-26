@@ -1,8 +1,6 @@
-using GameServer.Application.Common.Interfaces;
 using GameServer.Application.Common.Interfaces.Identity;
-using GameServer.Application.Session;
 using GameServer.Domain.Constants;
-using GameServer.Infrastructure.Identity.Claims;
+using GameServer.Infrastructure.Services.Users.Identity.Claims;
 using Identity.Persistence;
 using Identity.Persistence.DbContexts;
 using Identity.Persistence.Entities;
@@ -10,21 +8,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace GameServer.Infrastructure.Identity;
+namespace GameServer.Infrastructure.Services.Users.Identity;
 
 public static class DependencyInjection
 {
     public static IHostApplicationBuilder ConfigureIdentityServices(
         this IHostApplicationBuilder builder)
     {
-        builder.Services.AddScoped<IGameSessionService, GameSessionService>();
         builder.Services.AddScoped<IIdentityService, IdentityService>();
-
-        // Adicionar memória transitória como cache
-        builder.Services.AddMemoryCache();
-
-        // Adicionar métricas
-        builder.Services.AddMetrics();
 
         builder.Services
             .AddIdentityCore<ApplicationUser>()

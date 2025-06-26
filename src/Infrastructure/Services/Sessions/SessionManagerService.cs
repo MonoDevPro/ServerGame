@@ -50,6 +50,8 @@ public class SessionManagerService : ISessionManager
             data.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(DEFAULT_MINUTES);
             _cache.Set(key, data, CreateOptions());
             _renewed.Add(1);
+            
+            _logger.LogDebug("Session renewed for {UserId}", userId);
         }
 
         return Task.CompletedTask;
@@ -106,19 +108,15 @@ public class SessionManagerService : ISessionManager
     private static string GetKey(string userId) => $"{SESSION_KEY_PREFIX}{userId}";
 
     // Internal DTO for cache storage
-    private sealed class GameSessionData
+    private sealed class GameSessionData(
+        string userId,
+        long accountId,
+        DateTimeOffset createdAt,
+        DateTimeOffset expiresAt)
     {
-        public string UserId { get; init; }
-        public long AccountId { get; init; }
-        public DateTimeOffset CreatedAt { get; init; }
-        public DateTimeOffset ExpiresAt { get; set; }
-
-        public GameSessionData(string userId, long accountId, DateTimeOffset createdAt, DateTimeOffset expiresAt)
-        {
-            UserId = userId;
-            AccountId = accountId;
-            CreatedAt = createdAt;
-            ExpiresAt = expiresAt;
-        }
+        public string UserId { get; init; } = userId;
+        public long AccountId { get; init; } = accountId;
+        public DateTimeOffset CreatedAt { get; init; } = createdAt;
+        public DateTimeOffset ExpiresAt { get; set; } = expiresAt;
     }
 }

@@ -3,7 +3,7 @@ using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
-namespace GameServer.Infrastructure.Identity.Claims;
+namespace GameServer.Infrastructure.Services.Users.Identity.Claims;
 
 public class ClaimsPrincipalFactory(UserManager<ApplicationUser> userManager, IOptions<IdentityOptions> optionsAccessor)
     : UserClaimsPrincipalFactory<ApplicationUser>(userManager, optionsAccessor)

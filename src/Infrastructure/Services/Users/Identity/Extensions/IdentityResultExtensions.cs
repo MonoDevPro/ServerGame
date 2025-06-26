@@ -1,7 +1,7 @@
 ﻿using GameServer.Application.Common.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace GameServer.Infrastructure.Identity.Extensions;
+namespace GameServer.Infrastructure.Services.Users.Identity.Extensions;
 
 public static class IdentityResultExtensions
 {

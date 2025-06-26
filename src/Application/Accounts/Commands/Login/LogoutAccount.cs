@@ -12,17 +12,20 @@ public record LogoutAccountCommand : IRequest<Unit>;
 
 public class LogoutAccountCommandHandler(
     ICurrentAccountService currentAccountService, 
+    IAccountService accountService,
     IUser user,
-    IGameSessionService gameSessionService,
+    ISessionManager sessionManager,
     ILogger<LogoutAccountCommandHandler> logger
     ) : IRequestHandler<LogoutAccountCommand, Unit>
 {
     public async Task<Unit> Handle(LogoutAccountCommand request, CancellationToken cancellationToken)
     {
-        var account = await currentAccountService.GetForUpdateAsync(cancellationToken);
+        var accountId = await currentAccountService.GetIdAsync(cancellationToken);
+        var account = await accountService.GetForUpdateAsync(accountId, cancellationToken);
+        
         account.Logout();
 
-        await gameSessionService.RevokeAccountSessionAsync(user.Id!);
+        await sessionManager.RevokeSessionAsync(user.Id!);
 
         logger.LogInformation("User logged out successfully.");
         

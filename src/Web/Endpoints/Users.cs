@@ -2,7 +2,11 @@ using System.Diagnostics;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Encodings.Web;
-using GameServer.Application.Users.Handlers;
+using FluentValidation;
+using GameServer.Application.Users.Commands.Create;
+using GameServer.Application.Users.Commands.ConfirmEmail;
+using GameServer.Application.Users.Commands.ResendConfirmationEmail;
+using GameServer.Application.Users.Notifications;
 using GameServer.Domain.Rules;
 using GameServer.Web.Models;
 using Identity.Persistence.Entities;
@@ -18,7 +22,6 @@ namespace GameServer.Web.Endpoints;
 /// <summary>
 /// Mapeia os endpoints da API de Identidade usando um padrão de grupo de endpoints baseado em classe.
 /// </summary>
-/// <typeparam name="ApplicationUser">O tipo que descreve o usuário.</typeparam>
 public class Users : EndpointGroupBase
 {
     public override void Map(WebApplication app)
@@ -45,47 +48,46 @@ public class Users : EndpointGroupBase
     // POST /register
     private async Task<Results<Ok, ValidationProblem>> Register(
         [FromBody] RegisterRequest registration,
-        HttpContext context,
-        UserManager<ApplicationUser> userManager,
-        IUserStore<ApplicationUser> userStore,
-        IEmailSender<ApplicationUser> emailSender,
-        LinkGenerator linkGenerator,
-        IPublisher publisher)
+        IPublisher publisher,
+        ISender sender)
     {
-        if (!userManager.SupportsUserEmail)
+        try
         {
-            throw new NotSupportedException($"{nameof(ApplicationUser)} requires a user store with email support.");
+            // Agora o comando faz TUDO: criação + email de confirmação
+            var command = new CreateUserCommand(
+                registration.Username,
+                registration.Email,
+                registration.Password);
+
+            var result = await sender.Send(command);
+
+            if (!result.Success)
+            {
+                // Converter erros para o formato esperado pelo endpoint
+                var identityErrors = result.ErrorMessage?.Split(", ")
+                    .Select(err => new IdentityError { Description = err })
+                    .ToArray() ?? [];
+
+                var identityResult = IdentityResult.Failed(identityErrors);
+                return CreateValidationProblem(identityResult);
+            }
+
+            // Publicar notificação de usuário criado
+            await publisher.Publish(new UserCreatedNotification(result.UserId!), CancellationToken.None);
+            
+            return TypedResults.Ok();
         }
-
-        var emailStore = (IUserEmailStore<ApplicationUser>)userStore;
-        var email = registration.Email;
-
-        if (string.IsNullOrEmpty(email) || !EmailRule.IsValid(email))
+        catch (ValidationException ex)
         {
-            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(email)));
+            // Tratar erros de validação do FluentValidation
+            var errorDictionary = ex.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray());
+
+            return TypedResults.ValidationProblem(errorDictionary);
         }
-
-        var userName = registration.Username;
-
-        if (string.IsNullOrEmpty(userName) || !UsernameRule.IsValid(userName))
-        {
-            return CreateValidationProblem(IdentityResult.Failed(userManager.ErrorDescriber.InvalidUserName(userName)));
-        }
-
-        var user = new ApplicationUser();
-        await userStore.SetUserNameAsync(user, userName, CancellationToken.None);
-        await emailStore.SetEmailAsync(user, email, CancellationToken.None);
-        var result = await userManager.CreateAsync(user, registration.Password);
-
-        if (!result.Succeeded)
-        {
-            return CreateValidationProblem(result);
-        }
-
-        await publisher.Publish(new UserCreatedNotification(user.Id), CancellationToken.None);
-
-        await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, email, isChange: false);
-        return TypedResults.Ok();
     }
 
     // POST /login
@@ -188,52 +190,30 @@ public class Users : EndpointGroupBase
         [FromQuery] string userId,
         [FromQuery] string code,
         [FromQuery] string? changedEmail,
-        UserManager<ApplicationUser> userManager)
+        ISender sender)
     {
-        if (await userManager.FindByIdAsync(userId) is not { } user)
-            return TypedResults.Unauthorized();
-
         try
         {
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            var result = await sender.Send(new ConfirmEmailCommand(userId, code, changedEmail));
+            
+            if (!result.Success)
+                return TypedResults.Unauthorized();
+
+            return TypedResults.Text("Thank you for confirming your email.");
         }
-        catch (FormatException)
+        catch
         {
             return TypedResults.Unauthorized();
         }
-
-        IdentityResult result;
-        if (string.IsNullOrEmpty(changedEmail))
-            result = await userManager.ConfirmEmailAsync(user, code);
-        else
-        {
-            result = await userManager.ChangeEmailAsync(user, changedEmail, code);
-            if (result.Succeeded)
-            {
-                //result = await userManager.SeApplicationUserNameAsync(user, changedEmail);
-            }
-        }
-
-        if (!result.Succeeded)
-            return TypedResults.Unauthorized();
-
-        return TypedResults.Text("Thank you for confirming your email.");
     }
 
     // POST /resendConfirmationEmail
     private async Task<Ok> ResendConfirmationEmail(
         [FromBody] ResendConfirmationEmailRequest resendRequest,
-        HttpContext context,
-        UserManager<ApplicationUser> userManager,
-        IEmailSender<ApplicationUser> emailSender,
-        LinkGenerator linkGenerator)
+        ISender sender)
     {
-        if (await userManager.FindByEmailAsync(resendRequest.Email) is not { } user)
-        {
-            return TypedResults.Ok();
-        }
-
-        await SendConfirmationEmailAsync(user, userManager, context, linkGenerator, emailSender, resendRequest.Email);
+        // Usar o serviço ao invés de manipular UserManager diretamente
+        await sender.Send(new ResendConfirmationEmailCommand(resendRequest.Email));
         return TypedResults.Ok();
     }
 

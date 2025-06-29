@@ -1,23 +1,25 @@
 using System.Security.Claims;
-using GameServer.Application.Common.Interfaces.Identity;
+using System.Text;
 using GameServer.Application.Common.Models;
+using GameServer.Application.Users.Services;
 using GameServer.Infrastructure.Services.Users.Identity.Extensions;
 using Identity.Persistence.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace GameServer.Infrastructure.Services.Users;
 
 public class IdentityService(
     UserManager<ApplicationUser> userManager,
     IUserClaimsPrincipalFactory<ApplicationUser> userClaimsPrincipalFactory,
-    IAuthorizationService authorizationService)
+    IAuthorizationService authorizationService,
+    IEmailSender<ApplicationUser> emailSender)
     : IIdentityService
 {
     public async Task<string?> GetUserNameAsync(string userId)
     {
         var user = await userManager.FindByIdAsync(userId);
-
         return user?.UserName;
     }
 
@@ -30,44 +32,86 @@ public class IdentityService(
         };
 
         var result = await userManager.CreateAsync(user, password);
-
+        
+        if (result.Succeeded)
+        {
+            // Enviar email de confirmação automaticamente após criação
+            await SendConfirmationEmailInternalAsync(user, email, isChange: false);
+        }
+        
         return (result.ToApplicationResult(), user.Id);
+    }
+
+    public async Task<Result> ResendConfirmationEmailAsync(string email)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            // Por segurança, retornamos sucesso mesmo se o usuário não existir
+            return Result.Success();
+        }
+
+        await SendConfirmationEmailInternalAsync(user, email, isChange: false);
+        return Result.Success();
+    }
+
+    public async Task<Result> ConfirmEmailAsync(string userId, string code)
+    {
+        var user = await userManager.FindByIdAsync(userId);
+        if (user == null)
+            return Result.Failure([$"User not found: {userId}"]);
+
+        try
+        {
+            // Decodificar o código que vem da URL
+            var decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            var result = await userManager.ConfirmEmailAsync(user, decodedCode);
+            return result.ToApplicationResult();
+        }
+        catch (FormatException)
+        {
+            return Result.Failure(["Invalid confirmation code format"]);
+        }
+    }
+
+    private async Task SendConfirmationEmailInternalAsync(ApplicationUser user, string email, bool isChange)
+    {
+        var code = isChange
+            ? await userManager.GenerateChangeEmailTokenAsync(user, email)
+            : await userManager.GenerateEmailConfirmationTokenAsync(user);
+            
+        // Codificar para URL
+        var encodedCode = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+
+        // Enviar email - o EmailSender deve gerar a URL de confirmação
+        await emailSender.SendConfirmationLinkAsync(user, email, encodedCode);
     }
 
     public async Task<bool> IsInRoleAsync(string userId, string role)
     {
         var user = await userManager.FindByIdAsync(userId);
-
         return user != null && await userManager.IsInRoleAsync(user, role);
     }
 
     public async Task<bool> AuthorizeAsync(string userId, string policyName)
     {
         var user = await userManager.FindByIdAsync(userId);
-
-        if (user == null)
-        {
-            return false;
-        }
+        if (user == null) return false;
 
         var principal = await userClaimsPrincipalFactory.CreateAsync(user);
-
         var result = await authorizationService.AuthorizeAsync(principal, policyName);
-
         return result.Succeeded;
     }
 
     public async Task<Result> DeleteUserAsync(string userId)
     {
         var user = await userManager.FindByIdAsync(userId);
-
         return user != null ? await DeleteUserAsync(user) : Result.Success();
     }
 
     private async Task<Result> DeleteUserAsync(ApplicationUser applicationUser)
     {
         var result = await userManager.DeleteAsync(applicationUser);
-
         return result.ToApplicationResult();
     }
     

@@ -1,7 +1,7 @@
 using GameServer.Application.Accounts.Commands.Create;
 using Microsoft.Extensions.Logging;
 
-namespace GameServer.Application.Users.Handlers;
+namespace GameServer.Application.Users.Notifications;
 
 public record UserAuthenticatedNotification : INotification;
 

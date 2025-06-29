@@ -1,8 +1,7 @@
-﻿
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using GameServer.Application.Common.Models;
 
-namespace GameServer.Application.Common.Interfaces.Identity;
+namespace GameServer.Application.Users.Services;
 
 public interface IIdentityService
 {
@@ -12,11 +11,18 @@ public interface IIdentityService
 
     Task<bool> AuthorizeAsync(string userId, string policyName);
 
+    // Método atualizado para criação completa de usuário com email de confirmação
     Task<(Result Result, string UserId)> CreateUserAsync(string userName, string email, string password);
+    
+    // Método para reenvio de email de confirmação
+    Task<Result> ResendConfirmationEmailAsync(string email);
+    
+    // Método para confirmação de email
+    Task<Result> ConfirmEmailAsync(string userId, string code);
 
     Task<Result> DeleteUserAsync(string userId);
     
-    // Novos métodos para Claims
+    // Métodos para Claims
     Task<bool> HasClaimAsync(string userId, string claimType);
     Task<string?> GetClaimValueAsync(string userId, string claimType);
     Task<Result> AddClaimAsync(string userId, string claimType, string claimValue);

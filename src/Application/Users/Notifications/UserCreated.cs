@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Logging;
 
-namespace GameServer.Application.Users.Handlers;
+namespace GameServer.Application.Users.Notifications;
 
 public record UserCreatedNotification(
     [Required] string UserId

@@ -1,6 +1,6 @@
 using GameServer.Application.Accounts.Commands.Login;
 
-namespace GameServer.Application.Users.Handlers;
+namespace GameServer.Application.Users.Notifications;
 
 public class UserLogoutHandler(ISender sender)
     : INotificationHandler<UserLoggedOutNotification>

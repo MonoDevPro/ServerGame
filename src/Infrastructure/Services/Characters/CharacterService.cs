@@ -11,7 +11,7 @@ namespace GameServer.Infrastructure.Services.Characters;
 // 3. Implementação genérica de Character (ICharacterService)
 public class CharacterService(
     IMapper mapper,
-    IRepositoryCompose<Character> repo) : ICharacterService
+    IRepositoryCompose<Character> repo) : ICharacterCommandService, ICharacterQueryService
 {
     public async Task<bool> ExistsAsync(long characterId, CancellationToken cancellationToken = default)
     {
@@ -22,22 +22,20 @@ public class CharacterService(
 
     public async Task<List<CharacterSummaryDto>> GetAccountCharactersAsync(long accountId, CancellationToken cancellationToken = default)
     {
-        return await repo.ReaderRepository
-            .QueryListAsync<CharacterSummaryDto>(
-                predicate: c => c.AccountId == accountId,
-                selector: c => mapper.Map<CharacterSummaryDto>(c),
-                trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken);
+        return await repo.ReaderRepository.QueryListAsync<CharacterSummaryDto>(
+            predicate: c => c.AccountId == accountId,
+            selector: c => mapper.Map<CharacterSummaryDto>(c),
+            trackingType: TrackingType.NoTracking,
+            cancellationToken: cancellationToken);
     }
 
-    public async Task<CharacterDto> GetByIdAsync(long characterId, CancellationToken cancellationToken = default)
+    public async Task<CharacterDto> GetDtoAsync(long characterId, CancellationToken cancellationToken = default)
     {
-        return await repo.ReaderRepository
-            .QuerySingleAsync<CharacterDto>(
-                predicate: c => c.Id == characterId,
-                selector: c => mapper.Map<CharacterDto>(c),
-                trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken) 
+        return await repo.ReaderRepository.QuerySingleAsync<CharacterDto>(
+                   predicate: c => c.Id == characterId,
+                   selector: c => mapper.Map<CharacterDto>(c),
+                   trackingType: TrackingType.NoTracking,
+                   cancellationToken: cancellationToken) 
                ?? throw new NotFoundException(nameof(characterId), $"Character with ID {characterId} not found");
     }
 
@@ -53,13 +51,13 @@ public class CharacterService(
         return await repo.WriterRepository.AddAsync(entity, cancellationToken);
     }
 
-    public async Task<Character?> GetForUpdateAsync(long characterId, CancellationToken cancellationToken = default)
+    public async Task<Character> GetByIdAsync(long characterId, CancellationToken cancellationToken = default)
     {
-        return await repo.ReaderRepository
-            .QuerySingleAsync<Character>(
-                predicate: c => c.Id == characterId,
-                trackingType: TrackingType.Tracking,
-                cancellationToken: cancellationToken);
+        return await repo.ReaderRepository.QuerySingleAsync<Character>(
+            predicate: c => c.Id == characterId,
+            trackingType: TrackingType.Tracking,
+            cancellationToken: cancellationToken) 
+               ?? throw new NotFoundException(nameof(characterId), $"Character with ID {characterId} not found");
     }
 
     public async Task UpdateAsync(CharacterDto dto, CancellationToken cancellationToken = default)
@@ -67,7 +65,7 @@ public class CharacterService(
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
-        var entity = await GetForUpdateAsync(dto.Id, cancellationToken);
+        var entity = await GetByIdAsync(dto.Id, cancellationToken);
         if (entity == null)
             throw new NotFoundException($"{nameof(dto.Id)}", $"Character with ID {dto.Id} not found");
 
@@ -77,11 +75,20 @@ public class CharacterService(
 
     public async Task DeleteAsync(long characterId, CancellationToken cancellationToken = default)
     {
-        var entity = await GetForUpdateAsync(characterId, cancellationToken);
+        var entity = await GetByIdAsync(characterId, cancellationToken);
         if (entity == null)
             throw new NotFoundException($"{nameof(characterId)}", $"Character with ID {characterId} not found");
 
         await repo.WriterRepository.DeleteAsync(entity, cancellationToken);
+    }
+
+    public async Task PurgeAsync(long characterId, CancellationToken cancellationToken = default)
+    {
+        var entity = await GetByIdAsync(characterId, cancellationToken);
+        if (entity == null)
+            throw new NotFoundException($"{nameof(characterId)}", $"Character with ID {characterId} not found");
+        
+        entity.Deactivate();
     }
 
     public async Task<bool> IsOwnerAsync(long characterId, long accountId, CancellationToken cancellationToken = default)
@@ -99,5 +106,16 @@ public class CharacterService(
             .CountAsync(c => c.AccountId == accountId, cancellationToken: cancellationToken);
             
         return characterCount < maxCharactersPerAccount;
+    }
+
+    public async Task<bool> IsCharacterNameUniqueAsync(string name, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+            return false;
+
+        return !await repo.ReaderRepository.ExistsAsync(
+            c => c.Name.ToLower() == name.ToLower(),
+            cancellationToken: cancellationToken,
+            ignoreQueryFilters: true);
     }
 }

@@ -1,0 +1,72 @@
+# Characters API Endpoints
+# Testes para os endpoints de personagens
+
+### Criar um novo personagem
+POST {{host}}/characters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "TestWarrior",
+  "class": 0
+}
+
+### Listar personagens da conta
+GET {{host}}/characters
+Authorization: Bearer {{token}}
+
+### Obter personagem atual selecionado
+GET {{host}}/characters/current
+Authorization: Bearer {{token}}
+
+### Selecionar um personagem (substituir {id} pelo ID do personagem)
+POST {{host}}/characters/1/select
+Authorization: Bearer {{token}}
+
+### Deletar um personagem (substituir {id} pelo ID do personagem)
+DELETE {{host}}/characters/1
+Authorization: Bearer {{token}}
+
+### Exemplos de comandos do jogo
+
+### Entrar em dungeon (requer personagem selecionado)
+POST {{host}}/characters/actions/enter-dungeon
+Authorization: Bearer {{token}}
+
+### Gerenciar inventário
+POST {{host}}/characters/actions/manage-inventory
+Authorization: Bearer {{token}}
+
+### Entrar na arena PvP
+POST {{host}}/characters/actions/enter-pvp-arena
+Authorization: Bearer {{token}}
+
+### Testes com dados inválidos
+
+### Criar personagem com nome muito curto
+POST {{host}}/characters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "AB",
+  "class": 0
+}
+
+### Criar personagem com classe inválida
+POST {{host}}/characters
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "TestMage",
+  "class": 999
+}
+
+### Selecionar personagem inexistente
+POST {{host}}/characters/99999/select
+Authorization: Bearer {{token}}
+
+### Deletar personagem de outro usuário
+DELETE {{host}}/characters/99999
+Authorization: Bearer {{token}}

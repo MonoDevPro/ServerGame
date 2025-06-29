@@ -8,8 +8,10 @@ public interface IReaderRepository<TEntity>
 {
     // Métodos otimizados para contagem e verificação de existência
     Task<bool> ExistsAsync(
-        Expression<Func<TEntity, bool>> predicate, 
-        CancellationToken cancellationToken = default);
+        Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken = default,
+        bool ignoreQueryFilters = false,
+        bool ignoreAutoIncludes = false);
     Task<long> CountAsync(
         Expression<Func<TEntity, bool>>? predicate = null, 
         CancellationToken cancellationToken = default);
@@ -28,6 +30,13 @@ public interface IReaderRepository<TEntity>
         Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
         TrackingType trackingType = TrackingType.NoTracking,
         CancellationToken cancellationToken = default) where TResult : class;
+
+    Task<TResult?> QuerySingleValueAsync<TResult>(
+        Expression<Func<TEntity, bool>>? predicate = null,
+        Expression<Func<TEntity, TResult>>? selector = null,
+        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
+        TrackingType trackingType = TrackingType.NoTracking,
+        CancellationToken cancellationToken = default);
     
     // Novos métodos para paginação
     Task<IPagedList<TResult>> QueryPagedListAsync<TResult>(

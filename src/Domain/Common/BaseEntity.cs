@@ -37,16 +37,13 @@ public abstract class BaseEntity : IHasDomainEvents
         if (obj is not BaseEntity other) return false;
         if (ReferenceEquals(this, other)) return true;
         if (GetUnproxiedType(this) != GetUnproxiedType(other)) return false;
-        return Id.Equals(other.Id);
-    }
 
-    public static bool operator ==(BaseEntity? a, BaseEntity? b)
-    {
-        if (ReferenceEquals(a, b)) return true;
-        return a != null && a.Equals(b);
-    }
+        // Somente Id: se ainda não foi atribuído (0), considere diferente
+        if (Id == default || other.Id == default) 
+            return false;
 
-    public static bool operator !=(BaseEntity? a, BaseEntity? b) => !(a == b);
+        return Id == other.Id;
+    }
 
     public override int GetHashCode()
         => (GetUnproxiedType(this).ToString() + Id)
@@ -54,12 +51,10 @@ public abstract class BaseEntity : IHasDomainEvents
 
     internal static Type GetUnproxiedType(object obj)
     {
-        const string efCoreProxyPrefix = "Castle.Proxies.";
-        const string nHibernateProxyPostfix = "Proxy";
         var type = obj.GetType();
         var name = type.ToString();
-        if (name.Contains(efCoreProxyPrefix) || name.EndsWith(nHibernateProxyPostfix))
-            return type.BaseType!;
+        if (name.StartsWith("Castle.Proxies.") && type.BaseType is not null)
+            return type.BaseType;
         return type;
     }
 }

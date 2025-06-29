@@ -16,9 +16,25 @@ public class ReaderRepository<TEntity>(DbContext context)
 
     public async Task<bool> ExistsAsync(
         Expression<Func<TEntity, bool>> predicate, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool ignoreQueryFilters = false,
+        bool ignoreAutoIncludes = false)
     {
-        return await _context.AnyAsync(predicate, cancellationToken);
+        if (predicate is null)
+            throw new ArgumentNullException(nameof(predicate), "Predicate cannot be null");
+
+        var query = _context;
+        
+        if (ignoreQueryFilters)
+            query = query.IgnoreQueryFilters();
+        if (ignoreAutoIncludes)
+            query = query.IgnoreAutoIncludes();
+        
+        // Aplica o predicado
+        query = query.Where(predicate);
+
+        // Checa existência
+        return await query.AnyAsync(cancellationToken);
     }
 
     public async Task<long> CountAsync(
@@ -76,7 +92,7 @@ public class ReaderRepository<TEntity>(DbContext context)
         CancellationToken cancellationToken = default) 
         where TResult : class
     {
-        // 1. Definição do IQueryable base conforme tipo de rastreamento
+        // 1. Definição do IQueryable base
         IQueryable<TEntity> query = trackingType switch
         {
             TrackingType.NoTracking => _context.AsNoTracking(),
@@ -85,26 +101,68 @@ public class ReaderRepository<TEntity>(DbContext context)
             _ => throw new ArgumentOutOfRangeException(nameof(trackingType), trackingType, null)
         };
 
-        // 2. Include de navegações
-        if (include is not null)
+        // 2. Includes
+        if (include != null)
             query = include(query);
 
-        // 3. Filtro Where
-        if (predicate is not null)
+        // 3. Filtro
+        if (predicate != null)
             query = query.Where(predicate);
 
-        // 6. Projeção (Select) e paginação
-        if (selector is not null)
+        // 4. Projeção ou retorno da entidade
+        if (selector != null)
+            return await query
+                .Select(selector)
+                .SingleOrDefaultAsync(cancellationToken);
+        else
+            // Sem projeção, TEntity deve ser compatível com TResult
+            // Aqui usamos Cast — se TResult for valor, pode lançar em tempo de execução
+            return await query
+                .Cast<TResult>()
+                .SingleOrDefaultAsync(cancellationToken);
+    }
+    
+    public async Task<TResult?> QuerySingleValueAsync<TResult>(
+        Expression<Func<TEntity, bool>>? predicate = null,
+        Expression<Func<TEntity, TResult>>? selector = null,
+        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? include = null,
+        TrackingType trackingType = TrackingType.NoTracking,
+        CancellationToken cancellationToken = default)
+    {
+        // 1. Definição do IQueryable base
+        IQueryable<TEntity> query = trackingType switch
         {
-            var projected = query.Select(selector);
-            return await projected.SingleOrDefaultAsync(cancellationToken);
+            TrackingType.NoTracking => _context.AsNoTracking(),
+            TrackingType.NoTrackingWithIdentityResolution => _context.AsNoTrackingWithIdentityResolution(),
+            TrackingType.Tracking => _context.AsTracking(),
+            _ => throw new ArgumentOutOfRangeException(nameof(trackingType), trackingType, null)
+        };
+
+        // 2. Includes
+        if (include != null)
+            query = include(query);
+
+        // 3. Filtro
+        if (predicate != null)
+            query = query.Where(predicate);
+
+        // 4. Projeção ou retorno da entidade
+        if (selector != null)
+        {
+            return await query
+                .Select(selector)
+                .SingleOrDefaultAsync(cancellationToken);
         }
         else
         {
-            // Sem projeção, retorna entidade diretamente
-            return await query.Cast<TResult>().SingleOrDefaultAsync(cancellationToken);
+            // Sem projeção, TEntity deve ser compatível com TResult
+            // Aqui usamos Cast — se TResult for valor, pode lançar em tempo de execução
+            return await query
+                .Cast<TResult>()
+                .SingleOrDefaultAsync(cancellationToken);
         }
     }
+
 
     public async Task<IPagedList<TResult>> QueryPagedListAsync<TResult>(
         Expression<Func<TEntity, bool>>? predicate = null,

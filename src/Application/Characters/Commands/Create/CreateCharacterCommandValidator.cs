@@ -1,15 +1,18 @@
+using GameServer.Application.Accounts.Services;
+using GameServer.Application.Accounts.Services.Current;
 using GameServer.Application.Characters.Services;
-using GameServer.Domain.Enums;
 
 namespace GameServer.Application.Characters.Commands.Create;
 
 public class CreateCharacterCommandValidator : AbstractValidator<CreateCharacterCommand>
 {
-    private readonly ICurrentCharacterService _currentCharacterService;
+    private readonly ICurrentAccountService _currentAccountService;
+    private readonly ICharacterQueryService _query;
 
-    public CreateCharacterCommandValidator(ICurrentCharacterService currentCharacterService)
+    public CreateCharacterCommandValidator(ICharacterQueryService query, ICurrentAccountService currentAccountService)
     {
-        _currentCharacterService = currentCharacterService ?? throw new ArgumentNullException(nameof(currentCharacterService));
+        _query = query ?? throw new ArgumentNullException(nameof(query));
+        _currentAccountService = currentAccountService ?? throw new ArgumentNullException(nameof(currentAccountService));
 
         RuleFor(v => v.Name)
             .NotEmpty()
@@ -27,10 +30,22 @@ public class CreateCharacterCommandValidator : AbstractValidator<CreateCharacter
             .MustAsync(BeAbleToCreateCharacter)
             .WithMessage("Account has reached the maximum number of characters (3).")
             .WithErrorCode("MaxCharactersReached");
+
+        RuleFor(v => v.Name)
+            .MustAsync(BeUniqueCharacterName)
+            .WithMessage("Character name already exists.")
+            .WithErrorCode("NameAlreadyExists");
     }
 
     private async Task<bool> BeAbleToCreateCharacter(CreateCharacterCommand command, CancellationToken cancellationToken)
     {
-        return await _currentCharacterService.CanCreateCharacterAsync(cancellationToken);
+        var accountId = await _currentAccountService.GetIdAsync(cancellationToken);
+        
+        return await _query.CanCreateCharacterAsync(accountId, cancellationToken);
+    }
+
+    private async Task<bool> BeUniqueCharacterName(string name, CancellationToken cancellationToken)
+    {
+        return await _query.IsCharacterNameUniqueAsync(name, cancellationToken);
     }
 }

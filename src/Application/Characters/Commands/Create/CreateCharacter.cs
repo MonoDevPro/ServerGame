@@ -1,3 +1,5 @@
+using GameServer.Application.Accounts.Services;
+using GameServer.Application.Accounts.Services.Current;
 using GameServer.Application.Characters.Services;
 using GameServer.Application.Common.Security;
 using GameServer.Domain.Enums;
@@ -5,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Characters.Commands.Create;
 
-[RequireGameSession]
+[RequireGameSession(AllowExpiredSession = false, MinAccountType = AccountType.Player)]
 public record CreateCharacterCommand(
     string Name,
     CharacterClass Class
@@ -18,14 +20,22 @@ public record CreateCharacterResult(
 );
 
 public class CreateCharacterCommandHandler(
-    ICurrentCharacterService currentCharacterService,
-    ILogger<CreateCharacterCommandHandler> logger)
-    : IRequestHandler<CreateCharacterCommand, CreateCharacterResult>
+    ICurrentAccountService account,
+    ICharacterCommandService command,
+    ILogger<CreateCharacterCommandHandler> logger
+    ) : IRequestHandler<CreateCharacterCommand, CreateCharacterResult>
 {
     public async Task<CreateCharacterResult> Handle(CreateCharacterCommand request, CancellationToken cancellationToken)
     {
+        var accountId = await account.GetIdAsync(cancellationToken);
+        
         // Cria o personagem
-        var character = await currentCharacterService.CreateAsync(request.Name, request.Class, cancellationToken);
+        var character = await command.CreateAsync(
+            accountId,
+            request.Name,
+            request.Class,
+            cancellationToken
+        );
 
         logger.LogInformation("Character created successfully: {CharacterName} (ID: {CharacterId})",
             character.Name, character.Id);

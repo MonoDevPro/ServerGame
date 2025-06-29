@@ -1,5 +1,4 @@
-﻿using GameServer.Application.Accounts.Services;
-using GameServer.Domain.Exceptions;
+﻿using GameServer.Application.Accounts.Services.Current;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Accounts.Commands.Create;

@@ -1,4 +1,5 @@
 using GameServer.Application.Accounts.Services;
+using GameServer.Application.Accounts.Services.Current;
 
 namespace GameServer.Application.Accounts.Commands.Login;
 

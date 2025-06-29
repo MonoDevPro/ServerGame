@@ -1,7 +1,7 @@
 ﻿using GameServer.Domain.Events.Accounts;
 using Microsoft.Extensions.Logging;
 
-namespace GameServer.Application.Accounts.Handlers;
+namespace GameServer.Application.Accounts.Notifications;
 
 public class AccountDeactivatedNotificationHandler(ILogger<AccountDeactivatedNotificationHandler> logger)
     : INotificationHandler<AccountDeactivatedEvent>

@@ -1,5 +1,6 @@
 using GameServer.Application.Accounts.Queries.Models;
 using GameServer.Application.Accounts.Services;
+using GameServer.Application.Accounts.Services.Current;
 using GameServer.Application.Common.Security;
 
 namespace GameServer.Application.Accounts.Queries.Get;

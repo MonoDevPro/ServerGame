@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Accounts.Commands.Login;
 
-[RequireGameSession(AllowExpiredSession = true)]
 public record LoginAccountCommand : IRequest<LoginAccountResult>;
 
 public record LoginAccountResult(
@@ -21,8 +20,7 @@ public record LoginAccountResult(
 );
 
 public class LoginAccountCommandHandler(
-    ICurrentAccountService currentAccountService,
-    IAccountService accountService,
+    IAccountQueryService query,
     ISessionManager sessionManager,
     IUser user)
     : IRequestHandler<LoginAccountCommand, LoginAccountResult>
@@ -30,8 +28,8 @@ public class LoginAccountCommandHandler(
     public async Task<LoginAccountResult> Handle(LoginAccountCommand request, CancellationToken ct)
     {
         // 1) Recupere EM TRACKING a conta existente
-        var accountId = await currentAccountService.GetIdAsync(ct);
-        var account = await accountService.GetForUpdateAsync(accountId, ct);
+        var accountId = await query.GetIdAsync(user.Id!, ct);
+        var account = await query.GetByIdAsync(accountId, ct);
         
         // 2) Faça o login
         account.Login(LoginInfo.Create(user.IpAddress!, DateTimeOffset.UtcNow));

@@ -1,7 +1,7 @@
 ﻿using GameServer.Domain.Events.Accounts;
 using Microsoft.Extensions.Logging;
 
-namespace GameServer.Application.Accounts.Handlers;
+namespace GameServer.Application.Accounts.Notifications;
 
 public class AccountCreatedNotificationHandler(ILogger<AccountCreatedNotificationHandler> logger)
     : INotificationHandler<AccountCreatedEvent>

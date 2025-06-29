@@ -9,7 +9,7 @@ namespace GameServer.Infrastructure.Services.Accounts;
 
 public class AccountService(
     IMapper mapper,
-    IRepositoryCompose<Account> repo) : IAccountService
+    IRepositoryCompose<Account> repo): IAccountQueryService, IAccountCommandService
 {
     public async Task<bool> ExistsAsync(long accountId, CancellationToken cancellationToken = default)
     {
@@ -30,11 +30,22 @@ public class AccountService(
 
     public async Task<Account> GetByIdAsync(long accountId, CancellationToken cancellationToken = default)
     {
-        return await repo.ReaderRepository
-            .QuerySingleAsync<Account>(
-                predicate: a => a.Id == accountId,
-                trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
+        return await repo.ReaderRepository.QuerySingleAsync<Account>(
+            predicate: a => a.Id == accountId,
+            trackingType: TrackingType.Tracking,
+            cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
+    }
+
+    public Task<long> GetIdAsync(string userId, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
+
+        return repo.ReaderRepository.QuerySingleValueAsync(
+            predicate: a => a.CreatedBy == userId,
+            selector: a => a.Id,
+            trackingType: TrackingType.NoTracking,
+            cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(userId), $"Account for user {userId} not found");
     }
 
     public async Task<AccountDto> GetDtoAsync(long accountId, CancellationToken cancellationToken = default)
@@ -52,21 +63,11 @@ public class AccountService(
         if (string.IsNullOrWhiteSpace(userId))
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
 
-        return await repo.ReaderRepository
-            .QuerySingleAsync<AccountDto>(
-                predicate: a => a.CreatedBy == userId,
-                selector: a => mapper.Map<AccountDto>(a),
-                trackingType: TrackingType.NoTracking,
-                cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(userId), $"Account for user {userId} not found");
-    }
-
-    public async Task<Account> GetForUpdateAsync(long accountId, CancellationToken cancellationToken = default)
-    {
-        return await repo.ReaderRepository
-            .QuerySingleAsync<Account>(
-                predicate: a => a.Id == accountId,
-                trackingType: TrackingType.Tracking,
-                cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
+        return await repo.ReaderRepository.QuerySingleAsync<AccountDto>(
+            predicate: a => a.CreatedBy == userId,
+            selector: a => mapper.Map<AccountDto>(a),
+            trackingType: TrackingType.NoTracking,
+            cancellationToken: cancellationToken) ?? throw new NotFoundException(nameof(userId), $"Account for user {userId} not found");
     }
 
     public async Task<Account> CreateAsync(CancellationToken cancellationToken = default)
@@ -92,17 +93,16 @@ public class AccountService(
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
 
-        var entity = await GetForUpdateAsync(dto.Id, cancellationToken);
+        var entity = await GetByIdAsync(dto.Id, cancellationToken);
         if (entity == null)
             throw new NotFoundException(nameof(dto.Id), $"Account with ID {dto.Id} not found");
 
         mapper.Map(dto, entity);
-        //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
     }
 
     public async Task DeleteAsync(long accountId, CancellationToken cancellationToken = default)
     {
-        var entity = await GetForUpdateAsync(accountId, cancellationToken);
+        var entity = await GetByIdAsync(accountId, cancellationToken);
         if (entity == null)
             throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
 
@@ -111,12 +111,11 @@ public class AccountService(
 
     public async Task PurgeAsync(long accountId, CancellationToken cancellationToken = default)
     {
-        var entity = await GetForUpdateAsync(accountId, cancellationToken);
+        var entity = await GetByIdAsync(accountId, cancellationToken);
         if (entity == null)
             throw new NotFoundException(nameof(accountId), $"Account with ID {accountId} not found");
 
         entity.Deactivate();
-        //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
     }
 
     public async Task PurgeAsync(string userId, CancellationToken cancellationToken = default)
@@ -131,22 +130,7 @@ public class AccountService(
                 cancellationToken: cancellationToken);
 
         if (entity != null)
-        {
             entity.Deactivate();
-            //await repo.WriterRepository.UpdateAsync(entity, cancellationToken);
-        }
-    }
-
-    public async Task<bool> CanCreateCharacterAsync(long accountId, CancellationToken cancellationToken = default)
-    {
-        const int maxCharactersPerAccount = 3;
-        
-        var characterCount = await repo.ReaderRepository
-            .CountAsync(
-                predicate: a => a.Id == accountId,
-                cancellationToken: cancellationToken);
-            
-        return characterCount < maxCharactersPerAccount;
     }
 
     public async Task<bool> HasAnyCharacterAsync(long accountId, CancellationToken cancellationToken = default)

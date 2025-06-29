@@ -1,7 +1,6 @@
 using GameServer.Application.Accounts.Queries.Models;
-using GameServer.Domain.Entities;
 
-namespace GameServer.Application.Accounts.Services;
+namespace GameServer.Application.Accounts.Services.Current;
 
 /// <summary>
 /// Serviço que gerencia a conta associada ao usuário atual autenticado.

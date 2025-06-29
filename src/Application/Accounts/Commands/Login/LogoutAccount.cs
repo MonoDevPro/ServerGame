@@ -11,17 +11,16 @@ namespace GameServer.Application.Accounts.Commands.Login;
 public record LogoutAccountCommand : IRequest<Unit>;
 
 public class LogoutAccountCommandHandler(
-    ICurrentAccountService currentAccountService, 
-    IAccountService accountService,
-    IUser user,
+    IAccountQueryService accountQueryService,
     ISessionManager sessionManager,
+    IUser user,
     ILogger<LogoutAccountCommandHandler> logger
     ) : IRequestHandler<LogoutAccountCommand, Unit>
 {
     public async Task<Unit> Handle(LogoutAccountCommand request, CancellationToken cancellationToken)
     {
-        var accountId = await currentAccountService.GetIdAsync(cancellationToken);
-        var account = await accountService.GetForUpdateAsync(accountId, cancellationToken);
+        var accountId = await accountQueryService.GetIdAsync(user.Id!, cancellationToken);
+        var account = await accountQueryService.GetByIdAsync(accountId, cancellationToken);
         
         account.Logout();
 

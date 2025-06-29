@@ -1,5 +1,5 @@
 ﻿using GameServer.Application.Common.Interfaces;
-using GameServer.Application.Common.Interfaces.Identity;
+using GameServer.Application.Users.Services;
 using MediatR.Pipeline;
 using Microsoft.Extensions.Logging;
 

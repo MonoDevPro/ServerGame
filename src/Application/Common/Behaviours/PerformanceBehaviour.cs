@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using GameServer.Application.Common.Interfaces;
-using GameServer.Application.Common.Interfaces.Identity;
+using GameServer.Application.Users.Services;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Common.Behaviours;

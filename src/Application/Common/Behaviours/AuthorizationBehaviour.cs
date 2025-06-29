@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
 using GameServer.Application.Common.Exceptions;
 using GameServer.Application.Common.Interfaces;
-using GameServer.Application.Common.Interfaces.Identity;
 using GameServer.Application.Common.Security;
+using GameServer.Application.Users.Services;
 
 namespace GameServer.Application.Common.Behaviours;
 

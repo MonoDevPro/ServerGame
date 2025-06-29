@@ -1,4 +1,4 @@
-using GameServer.Application.Common.Interfaces.Identity;
+using GameServer.Application.Users.Services;
 using GameServer.Domain.Constants;
 using GameServer.Infrastructure.Services.Users.Identity.Claims;
 using Identity.Persistence;

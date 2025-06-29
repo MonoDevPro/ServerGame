@@ -17,17 +17,14 @@ public class SessionManagerService : ISessionManager
     private readonly Counter<long> _renewed;
     private readonly Counter<long> _expired;
     private readonly Counter<long> _revoked;
-    private readonly SessionExpirationService _expiration;
     private readonly ILogger<SessionManagerService> _logger;
 
     public SessionManagerService(
         IMemoryCache cache,
-        SessionExpirationService expiration,
         ILogger<SessionManagerService> logger,
         IMeterFactory meterFactory)
     {
         _cache = cache;
-        _expiration = expiration;
         _logger = logger;
         var meter = meterFactory.Create("GameServer.SessionManager");
         _created = meter.CreateCounter<long>("sessions_created");
@@ -101,7 +98,6 @@ public class SessionManagerService : ISessionManager
         {
             _expired.Add(1);
             _logger.LogInformation("Session expired for {UserId}", data.UserId);
-            _expiration.EnqueueExpiration(data.UserId, "expired");
         }
     }
 

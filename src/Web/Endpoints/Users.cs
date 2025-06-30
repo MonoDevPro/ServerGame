@@ -53,27 +53,26 @@ public class Users : EndpointGroupBase
     {
         try
         {
-            // Agora o comando faz TUDO: criação + email de confirmação
             var command = new CreateUserCommand(
                 registration.Username,
                 registration.Email,
                 registration.Password);
 
-            var result = await sender.Send(command);
+            var (result, userId) = await sender.Send(command);
 
-            if (!result.Success)
+            if (!result.Succeeded)
             {
                 // Converter erros para o formato esperado pelo endpoint
-                var identityErrors = result.ErrorMessage?.Split(", ")
+                var identityErrors = result.Errors
                     .Select(err => new IdentityError { Description = err })
-                    .ToArray() ?? [];
+                    .ToArray();
 
                 var identityResult = IdentityResult.Failed(identityErrors);
                 return CreateValidationProblem(identityResult);
             }
 
             // Publicar notificação de usuário criado
-            await publisher.Publish(new UserCreatedNotification(result.UserId!), CancellationToken.None);
+            await publisher.Publish(new UserCreatedNotification(userId), CancellationToken.None);
             
             return TypedResults.Ok();
         }

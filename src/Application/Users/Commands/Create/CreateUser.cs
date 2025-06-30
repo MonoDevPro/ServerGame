@@ -1,6 +1,5 @@
 using GameServer.Application.Common.Models;
 using GameServer.Application.Users.Services;
-using GameServer.Domain.Rules;
 using Microsoft.Extensions.Logging;
 
 namespace GameServer.Application.Users.Commands.Create;
@@ -9,20 +8,14 @@ public record CreateUserCommand(
     string Username,
     string Email,
     string Password
-) : IRequest<CreateUserResult>;
-
-public record CreateUserResult(
-    bool Success,
-    string? UserId,
-    string? ErrorMessage
-);
+) : IRequest<(Result Result, string UserId)>;
 
 public class CreateUserCommandHandler(
     IIdentityService identityService,
     ILogger<CreateUserCommandHandler> logger
-    ) : IRequestHandler<CreateUserCommand, CreateUserResult>
+    ) : IRequestHandler<CreateUserCommand, (Result Result, string UserId)>
 {
-    public async Task<CreateUserResult> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    public async Task<(Result Result, string UserId)> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
         logger.LogInformation("Creating user with username: {Username}, email: {Email}", 
             request.Username, request.Email);
@@ -37,12 +30,12 @@ public class CreateUserCommandHandler(
             var errorMessage = string.Join(", ", result.Errors);
             logger.LogWarning("Failed to create user {Username}: {Errors}", request.Username, errorMessage);
             
-            return new CreateUserResult(false, null, errorMessage);
+            return (result, string.Empty);
         }
 
         logger.LogInformation("User created successfully: {Username} (ID: {UserId})", 
             request.Username, userId);
 
-        return new CreateUserResult(true, userId, null);
+        return (result, userId);
     }
 }

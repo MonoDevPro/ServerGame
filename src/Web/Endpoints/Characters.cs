@@ -1,5 +1,6 @@
 using GameServer.Application.Characters.Commands.Create;
 using GameServer.Application.Characters.Commands.Delete;
+using GameServer.Application.Characters.Commands.Deselect;
 using GameServer.Application.Characters.Commands.Select;
 using GameServer.Application.Characters.Commands.Examples;
 using GameServer.Application.Characters.Queries.Get;
@@ -24,6 +25,7 @@ public class Characters : EndpointGroupBase
             .MapGet(GetCurrentCharacter, "/current")
             .MapPost(CreateCharacter, "")
             .MapPost(SelectCharacter, "/{id:long}/select")
+            .MapPost(DeselectCharacter, "/deselect")
             .MapDelete(DeleteCharacter, "/{id:long}")
             
             // Exemplos de comandos específicos do jogo
@@ -126,6 +128,28 @@ public class Characters : EndpointGroupBase
                 error = "Validation failed", 
                 details = ex.Errors.Select(e => new { e.PropertyName, e.ErrorMessage }) 
             });
+        }
+        catch (DomainException ex)
+        {
+            return Results.BadRequest(new { error = ex.Message });
+        }
+    }
+
+    private static async Task<IResult> DeselectCharacter(
+        IUser user,
+        ISender sender)
+    {
+        if (string.IsNullOrEmpty(user.Id))
+            return Results.Unauthorized();
+
+        try
+        {
+            await sender.Send(new DeselectCharacterCommand());
+            return Results.Ok(new { message = "Character deselected successfully" });
+        }
+        catch (NotFoundException)
+        {
+            return Results.NotFound(new { error = "Character not found" });
         }
         catch (DomainException ex)
         {

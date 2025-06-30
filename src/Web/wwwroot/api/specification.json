@@ -182,6 +182,24 @@
         ]
       }
     },
+    "/api/Characters/deselect": {
+      "post": {
+        "tags": [
+          "Characters"
+        ],
+        "operationId": "DeselectCharacter",
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT": []
+          }
+        ]
+      }
+    },
     "/api/Characters/{id}": {
       "delete": {
         "tags": [

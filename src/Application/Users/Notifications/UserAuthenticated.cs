@@ -5,8 +5,6 @@ namespace GameServer.Application.Users.Notifications;
 
 public record UserAuthenticatedNotification : INotification;
 
-public record UserLoggedOutNotification : INotification;
-
 public class UserLoggedInHandler(ISender sender, ILogger<UserLoggedInHandler> logger)
     : INotificationHandler<UserAuthenticatedNotification>
 {
